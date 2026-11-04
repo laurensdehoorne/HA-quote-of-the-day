@@ -14,7 +14,6 @@ import logging
 import random
 from typing import Any
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
@@ -39,6 +38,7 @@ from .const import (
     STORAGE_KEY,
     STORAGE_VERSION,
 )
+from .data import QuoteConfigEntry
 from .quotes import Quote, is_good_quote, quotes_for_language
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,8 +50,6 @@ UPDATE_INTERVAL = timedelta(minutes=30)
 RETRY_AFTER = timedelta(hours=1)
 # All online sources currently deliver English quotes.
 ONLINE_SOURCE_LANGUAGE = LANGUAGE_EN
-
-type QuoteConfigEntry = ConfigEntry[QuoteCoordinator]
 
 
 @dataclass(slots=True)

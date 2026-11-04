@@ -35,6 +35,17 @@ your dashboard, a morning notification or a TTS announcement.
   a built-in quote is shown (`fallback: true`).
 - **Language:** all, English or Dutch. The online sources are English, so
   with Dutch only the built-in collection is used.
+- **Famous birthday and fact of the day** (optional, on by default), from
+  Wikipedia's "On this day":
+  - *Birthday*: of everyone born on this day, the person whose Wikipedia
+    page was read most in the last 30 days, with photo, description and
+    age/years ago.
+  - *On this day*: one of the events Wikipedia editors selected for this
+    date; scientific events (space, discoveries, inventions, medicine…)
+    are three times as likely to be picked as other historical ones.
+  - Uses the Wikipedia of your language (Dutch with "Dutch", Home
+    Assistant's language with "All"), falling back to English. The coming
+    week is fetched ahead and cached, so a few days offline go unnoticed.
 - **"New quote" button** to swap today's quote for a random one.
 - Set up and configured from the UI, translated in English and Dutch.
 
@@ -64,6 +75,8 @@ pick the sources, language and cache duration. All can be changed later via
 | --- | --- |
 | `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `reference`, `date`, `source` (where this quote came from), `language`, `fallback`, `entries` (for feed cards) and, for online sources, `cached_quotes` and `cache_updated`. |
 | `sensor.quote_of_the_day_author` | The author of the quote. |
+| `sensor.quote_of_the_day_birthday` | Famous person born on this day. Picture: their photo. Attributes: `name`, `born`, `years_ago`, `description`, `summary`, `url`. |
+| `sensor.quote_of_the_day_on_this_day` | "year: event". Picture: from the article. Attributes: `text`, `year`, `years_ago`, `category` (`science`/`history`), `title`, `url`. |
 | `button.quote_of_the_day_new_quote` | Replaces today's quote with a random one. |
 
 The state of a sensor is limited to 255 characters; longer quotes are cut off
@@ -79,6 +92,25 @@ content: >
   > {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
 
   — *{{ state_attr('sensor.quote_of_the_day_quote', 'author') }}*
+```
+
+### Quote, birthday and fact on one card
+
+```yaml
+type: markdown
+content: >
+  > {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
+
+  — *{{ state_attr('sensor.quote_of_the_day_quote', 'author') }}*
+
+
+  🎂 **{{ states('sensor.quote_of_the_day_birthday') }}**
+  (born {{ state_attr('sensor.quote_of_the_day_birthday', 'born') }}),
+  {{ state_attr('sensor.quote_of_the_day_birthday', 'description') }}
+
+
+  📜 **{{ state_attr('sensor.quote_of_the_day_on_this_day', 'year') }}**:
+  {{ state_attr('sensor.quote_of_the_day_on_this_day', 'text') }}
 ```
 
 ### quote-of-the-day-card
@@ -130,3 +162,5 @@ pytest
 
 Online quotes are provided by the [ZenQuotes API](https://zenquotes.io/),
 [BrainyQuote](https://www.brainyquote.com/) and [FavQs](https://favqs.com/).
+Birthdays and facts come from [Wikipedia](https://www.wikipedia.org/)
+(CC BY-SA 4.0).

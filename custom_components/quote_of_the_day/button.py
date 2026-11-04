@@ -6,7 +6,8 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .coordinator import QuoteConfigEntry, QuoteCoordinator
+from .coordinator import QuoteCoordinator
+from .data import QuoteConfigEntry
 from .entity import QuoteEntity
 
 
@@ -16,7 +17,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the button."""
-    async_add_entities([NewQuoteButton(entry.runtime_data)])
+    async_add_entities([NewQuoteButton(entry.runtime_data.quotes)])
 
 
 class NewQuoteButton(QuoteEntity, ButtonEntity):

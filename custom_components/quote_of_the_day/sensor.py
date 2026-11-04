@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_AUTHOR,
@@ -20,8 +21,11 @@ from .const import (
     ATTR_REFERENCE,
     ATTR_SOURCE,
 )
-from .coordinator import QuoteConfigEntry, QuoteCoordinator
-from .entity import QuoteEntity
+from .coordinator import QuoteCoordinator
+from .data import QuoteConfigEntry
+from .entity import OnThisDayEntity, QuoteEntity
+from .onthisday import Birthday, Fact
+from .onthisday_coordinator import OnThisDayCoordinator
 
 # Home Assistant limits a state to 255 characters; the full text is
 # always available in the ``quote`` attribute.
@@ -41,10 +45,11 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the sensors."""
-    coordinator = entry.runtime_data
-    async_add_entities(
-        [QuoteSensor(coordinator), AuthorSensor(coordinator)],
-    )
+    data = entry.runtime_data
+    entities: list[SensorEntity] = [QuoteSensor(data.quotes), AuthorSensor(data.quotes)]
+    if data.on_this_day:
+        entities += [BirthdaySensor(data.on_this_day), FactSensor(data.on_this_day)]
+    async_add_entities(entities)
 
 
 class QuoteSensor(QuoteEntity, SensorEntity):
@@ -98,3 +103,97 @@ class AuthorSensor(QuoteEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the author."""
         return truncate(self.coordinator.data.quote.author)
+
+
+def _years_ago(year: int) -> int:
+    return dt_util.now().year - year
+
+
+class BirthdaySensor(OnThisDayEntity, SensorEntity):
+    """A famous person born on this day."""
+
+    _attr_icon = "mdi:cake-variant"
+
+    def __init__(self, coordinator: OnThisDayCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, "birthday")
+
+    @property
+    def _birthday(self) -> Birthday | None:
+        data = self.coordinator.data
+        return data.birthday if data else None
+
+    @property
+    def available(self) -> bool:
+        """Available when today has a birthday."""
+        return super().available and self._birthday is not None
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the person's name."""
+        return truncate(birthday.name) if (birthday := self._birthday) else None
+
+    @property
+    def entity_picture(self) -> str | None:
+        """Return the person's photo from Wikipedia."""
+        return birthday.image if (birthday := self._birthday) else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return details about the person."""
+        if (birthday := self._birthday) is None:
+            return None
+        return {
+            "name": birthday.name,
+            "born": birthday.year,
+            "years_ago": _years_ago(birthday.year),
+            "description": birthday.description,
+            "summary": birthday.summary,
+            "url": birthday.url,
+            ATTR_LANGUAGE: self.coordinator.data.language,
+        }
+
+
+class FactSensor(OnThisDayEntity, SensorEntity):
+    """A historical or scientific event that happened on this day."""
+
+    _attr_icon = "mdi:book-clock"
+
+    def __init__(self, coordinator: OnThisDayCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, "on_this_day")
+
+    @property
+    def _fact(self) -> Fact | None:
+        data = self.coordinator.data
+        return data.fact if data else None
+
+    @property
+    def available(self) -> bool:
+        """Available when today has a fact."""
+        return super().available and self._fact is not None
+
+    @property
+    def native_value(self) -> str | None:
+        """Return "year: event"."""
+        return truncate(f"{fact.year}: {fact.text}") if (fact := self._fact) else None
+
+    @property
+    def entity_picture(self) -> str | None:
+        """Return a picture of the event from Wikipedia."""
+        return fact.image if (fact := self._fact) else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return details about the event."""
+        if (fact := self._fact) is None:
+            return None
+        return {
+            "text": fact.text,
+            "year": fact.year,
+            "years_ago": _years_ago(fact.year),
+            "category": fact.category,
+            "title": fact.title,
+            "url": fact.url,
+            ATTR_LANGUAGE: self.coordinator.data.language,
+        }

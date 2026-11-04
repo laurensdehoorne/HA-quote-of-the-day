@@ -10,6 +10,7 @@ CONF_SOURCE: Final = "source"  # config entry version 1 (single source)
 CONF_SOURCES: Final = "sources"
 CONF_LANGUAGE: Final = "language"
 CONF_CACHE_DAYS: Final = "cache_days"
+CONF_ON_THIS_DAY: Final = "on_this_day"
 
 SOURCE_BUILTIN: Final = "builtin"
 SOURCE_ZENQUOTES: Final = "zenquotes"
@@ -26,6 +27,7 @@ LANGUAGES: Final = [LANGUAGE_ALL, LANGUAGE_EN, LANGUAGE_NL]
 DEFAULT_SOURCES: Final = list(SOURCES)
 DEFAULT_LANGUAGE: Final = LANGUAGE_ALL
 DEFAULT_CACHE_DAYS: Final = 28
+DEFAULT_ON_THIS_DAY: Final = True
 MIN_CACHE_DAYS: Final = 1
 MAX_CACHE_DAYS: Final = 90
 
@@ -39,6 +41,7 @@ FAVQS_QOTD_URL: Final = "https://favqs.com/api/qotd"
 
 STORAGE_VERSION: Final = 1
 STORAGE_KEY: Final = f"{DOMAIN}.data"
+STORAGE_KEY_ON_THIS_DAY: Final = f"{DOMAIN}.on_this_day"
 
 ATTR_QUOTE: Final = "quote"
 ATTR_AUTHOR: Final = "author"
@@ -50,6 +53,8 @@ ATTR_REFERENCE: Final = "reference"
 ATTR_ENTRIES: Final = "entries"
 ATTR_CACHED_QUOTES: Final = "cached_quotes"
 ATTR_CACHE_UPDATED: Final = "cache_updated"
+
+WIKIPEDIA_ATTRIBUTION: Final = "Data from Wikipedia (CC BY-SA 4.0)"
 
 ATTRIBUTIONS: Final = {
     SOURCE_ZENQUOTES: "Inspirational quotes provided by ZenQuotes API (https://zenquotes.io/)",

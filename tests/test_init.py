@@ -56,7 +56,13 @@ async def _setup(hass: HomeAssistant, **data) -> MockConfigEntry:
         domain=DOMAIN,
         title="Quote of the Day",
         version=2,
-        data={"sources": ["builtin"], "language": "all", "cache_days": 28, **data},
+        data={
+            "sources": ["builtin"],
+            "language": "all",
+            "cache_days": 28,
+            "on_this_day": False,
+            **data,
+        },
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -83,6 +89,7 @@ async def test_config_flow(
         "sources": ["builtin", "zenquotes", "brainyquote", "favqs"],
         "language": "all",
         "cache_days": 14,
+        "on_this_day": False,
     }
     result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -303,7 +310,12 @@ async def test_options_and_unload(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"sources": ["builtin"], "language": "en", "cache_days": 28}
+        result["flow_id"], {
+            "sources": ["builtin"],
+            "language": "en",
+            "cache_days": 28,
+            "on_this_day": False,
+        }
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()

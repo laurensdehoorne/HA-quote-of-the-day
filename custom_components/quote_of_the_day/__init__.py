@@ -7,8 +7,16 @@ import logging
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_SOURCE, CONF_SOURCES, SOURCE_BUILTIN
-from .coordinator import QuoteConfigEntry, QuoteCoordinator
+from .const import (
+    CONF_ON_THIS_DAY,
+    CONF_SOURCE,
+    CONF_SOURCES,
+    DEFAULT_ON_THIS_DAY,
+    SOURCE_BUILTIN,
+)
+from .coordinator import QuoteCoordinator
+from .data import QuoteConfigEntry, QuoteRuntimeData
+from .onthisday_coordinator import OnThisDayCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +30,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> boo
     entry.async_on_unload(coordinator.async_shutdown_listeners)
     await coordinator.async_config_entry_first_refresh()
 
-    entry.runtime_data = coordinator
+    on_this_day: OnThisDayCoordinator | None = None
+    if entry.options.get(
+        CONF_ON_THIS_DAY, entry.data.get(CONF_ON_THIS_DAY, DEFAULT_ON_THIS_DAY)
+    ):
+        on_this_day = OnThisDayCoordinator(hass, entry)
+        await on_this_day.async_setup()
+        entry.async_on_unload(on_this_day.async_shutdown_listeners)
+        # Not "first_refresh": the quote must work even when Wikipedia doesn't.
+        await on_this_day.async_refresh()
+
+    entry.runtime_data = QuoteRuntimeData(coordinator, on_this_day)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

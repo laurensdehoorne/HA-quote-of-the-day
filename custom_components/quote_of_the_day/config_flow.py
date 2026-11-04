@@ -14,6 +14,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -25,9 +26,11 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_CACHE_DAYS,
     CONF_LANGUAGE,
+    CONF_ON_THIS_DAY,
     CONF_SOURCES,
     DEFAULT_CACHE_DAYS,
     DEFAULT_LANGUAGE,
+    DEFAULT_ON_THIS_DAY,
     DEFAULT_SOURCES,
     DOMAIN,
     LANGUAGES,
@@ -37,7 +40,9 @@ from .const import (
 )
 
 
-def _schema(sources: list[str], language: str, cache_days: int) -> vol.Schema:
+def _schema(
+    sources: list[str], language: str, cache_days: int, on_this_day: bool
+) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_SOURCES, default=sources): vol.All(
@@ -70,6 +75,7 @@ def _schema(sources: list[str], language: str, cache_days: int) -> vol.Schema:
                 ),
                 vol.Coerce(int),
             ),
+            vol.Required(CONF_ON_THIS_DAY, default=on_this_day): BooleanSelector(),
         }
     )
 
@@ -88,7 +94,9 @@ class QuoteOfTheDayConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_schema(DEFAULT_SOURCES, DEFAULT_LANGUAGE, DEFAULT_CACHE_DAYS),
+            data_schema=_schema(
+                DEFAULT_SOURCES, DEFAULT_LANGUAGE, DEFAULT_CACHE_DAYS, DEFAULT_ON_THIS_DAY
+            ),
         )
 
     @staticmethod
@@ -115,5 +123,6 @@ class QuoteOfTheDayOptionsFlow(OptionsFlow):
                 current.get(CONF_SOURCES, DEFAULT_SOURCES),
                 current.get(CONF_LANGUAGE, DEFAULT_LANGUAGE),
                 current.get(CONF_CACHE_DAYS, DEFAULT_CACHE_DAYS),
+                current.get(CONF_ON_THIS_DAY, DEFAULT_ON_THIS_DAY),
             ),
         )

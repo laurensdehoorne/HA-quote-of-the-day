@@ -7,12 +7,14 @@
         "data": {
           "sources": "Bronnen",
           "language": "Taal",
-          "cache_days": "Cacheduur (dagen)"
+          "cache_days": "Cacheduur (dagen)",
+          "on_this_day": "Verjaardag en weetje van de dag"
         },
         "data_description": {
           "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
           "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
-          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
         }
       }
     },
@@ -27,12 +29,14 @@
         "data": {
           "sources": "Bronnen",
           "language": "Taal",
-          "cache_days": "Cacheduur (dagen)"
+          "cache_days": "Cacheduur (dagen)",
+          "on_this_day": "Verjaardag en weetje van de dag"
         },
         "data_description": {
           "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
           "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
-          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
         }
       }
     }
@@ -93,6 +97,62 @@
       },
       "author": {
         "name": "Auteur"
+      },
+      "birthday": {
+        "name": "Verjaardag",
+        "state_attributes": {
+          "name": {
+            "name": "Naam"
+          },
+          "born": {
+            "name": "Geboren"
+          },
+          "years_ago": {
+            "name": "Jaren geleden"
+          },
+          "description": {
+            "name": "Omschrijving"
+          },
+          "summary": {
+            "name": "Samenvatting"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Taal"
+          }
+        }
+      },
+      "on_this_day": {
+        "name": "Op deze dag",
+        "state_attributes": {
+          "text": {
+            "name": "Tekst"
+          },
+          "year": {
+            "name": "Jaar"
+          },
+          "years_ago": {
+            "name": "Jaren geleden"
+          },
+          "category": {
+            "name": "Categorie",
+            "state": {
+              "science": "Wetenschap",
+              "history": "Geschiedenis"
+            }
+          },
+          "title": {
+            "name": "Titel"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Taal"
+          }
+        }
       }
     },
     "button": {
