@@ -1,0 +1,164 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Quote of the Day",
+        "description": "Kies waar het citaat van de dag vandaan komt.",
+        "data": {
+          "sources": "Bronnen",
+          "language": "Taal",
+          "cache_days": "Cacheduur (dagen)",
+          "on_this_day": "Verjaardag en weetje van de dag"
+        },
+        "data_description": {
+          "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
+          "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Quote of the Day is al ingesteld."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties voor Quote of the Day",
+        "data": {
+          "sources": "Bronnen",
+          "language": "Taal",
+          "cache_days": "Cacheduur (dagen)",
+          "on_this_day": "Verjaardag en weetje van de dag"
+        },
+        "data_description": {
+          "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
+          "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
+        }
+      }
+    }
+  },
+  "selector": {
+    "sources": {
+      "options": {
+        "builtin": "Ingebouwde verzameling (gecontroleerd, offline)",
+        "zenquotes": "ZenQuotes (online, Engels)",
+        "brainyquote": "BrainyQuote (online, Engels)",
+        "favqs": "FavQs (online, Engels)"
+      }
+    },
+    "language": {
+      "options": {
+        "all": "Alle talen",
+        "en": "Engels",
+        "nl": "Nederlands"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "quote": {
+        "name": "Citaat",
+        "state_attributes": {
+          "quote": {
+            "name": "Citaat"
+          },
+          "author": {
+            "name": "Auteur"
+          },
+          "date": {
+            "name": "Datum"
+          },
+          "source": {
+            "name": "Bron"
+          },
+          "language": {
+            "name": "Taal"
+          },
+          "fallback": {
+            "name": "Reserve"
+          },
+          "entries": {
+            "name": "Items"
+          },
+          "cached_quotes": {
+            "name": "Citaten in cache"
+          },
+          "cache_updated": {
+            "name": "Cache bijgewerkt"
+          },
+          "reference": {
+            "name": "Bron van het citaat"
+          }
+        }
+      },
+      "author": {
+        "name": "Auteur"
+      },
+      "birthday": {
+        "name": "Verjaardag",
+        "state_attributes": {
+          "name": {
+            "name": "Naam"
+          },
+          "born": {
+            "name": "Geboren"
+          },
+          "years_ago": {
+            "name": "Jaren geleden"
+          },
+          "description": {
+            "name": "Omschrijving"
+          },
+          "summary": {
+            "name": "Samenvatting"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Taal"
+          }
+        }
+      },
+      "on_this_day": {
+        "name": "Op deze dag",
+        "state_attributes": {
+          "text": {
+            "name": "Tekst"
+          },
+          "year": {
+            "name": "Jaar"
+          },
+          "years_ago": {
+            "name": "Jaren geleden"
+          },
+          "category": {
+            "name": "Categorie",
+            "state": {
+              "science": "Wetenschap",
+              "history": "Geschiedenis"
+            }
+          },
+          "title": {
+            "name": "Titel"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Taal"
+          }
+        }
+      }
+    },
+    "button": {
+      "new_quote": {
+        "name": "Nieuw citaat"
+      }
+    }
+  }
+}

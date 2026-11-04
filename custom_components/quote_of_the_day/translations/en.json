@@ -1,0 +1,164 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Quote of the Day",
+        "description": "Choose where the daily quote comes from.",
+        "data": {
+          "sources": "Sources",
+          "language": "Language",
+          "cache_days": "Cache duration (days)",
+          "on_this_day": "Birthday and fact of the day"
+        },
+        "data_description": {
+          "sources": "Pick one or more sources; quotes from all of them are combined. The built-in collection is curated and works offline. ZenQuotes, BrainyQuote and FavQs are English online sources: their quotes are downloaded, filtered for quality and cached.",
+          "language": "Which quotes to show. Online sources are English, so with 'Dutch' only the built-in collection is used.",
+          "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources.",
+          "on_this_day": "Adds a sensor with a famous person born on this day and one with a historical or scientific event, from Wikipedia."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Quote of the Day is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Quote of the Day options",
+        "data": {
+          "sources": "Sources",
+          "language": "Language",
+          "cache_days": "Cache duration (days)",
+          "on_this_day": "Birthday and fact of the day"
+        },
+        "data_description": {
+          "sources": "Pick one or more sources; quotes from all of them are combined. The built-in collection is curated and works offline. ZenQuotes, BrainyQuote and FavQs are English online sources: their quotes are downloaded, filtered for quality and cached.",
+          "language": "Which quotes to show. Online sources are English, so with 'Dutch' only the built-in collection is used.",
+          "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources.",
+          "on_this_day": "Adds a sensor with a famous person born on this day and one with a historical or scientific event, from Wikipedia."
+        }
+      }
+    }
+  },
+  "selector": {
+    "sources": {
+      "options": {
+        "builtin": "Built-in collection (curated, offline)",
+        "zenquotes": "ZenQuotes (online, English)",
+        "brainyquote": "BrainyQuote (online, English)",
+        "favqs": "FavQs (online, English)"
+      }
+    },
+    "language": {
+      "options": {
+        "all": "All languages",
+        "en": "English",
+        "nl": "Dutch"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "quote": {
+        "name": "Quote",
+        "state_attributes": {
+          "quote": {
+            "name": "Quote"
+          },
+          "author": {
+            "name": "Author"
+          },
+          "date": {
+            "name": "Date"
+          },
+          "source": {
+            "name": "Source"
+          },
+          "language": {
+            "name": "Language"
+          },
+          "fallback": {
+            "name": "Fallback"
+          },
+          "entries": {
+            "name": "Entries"
+          },
+          "cached_quotes": {
+            "name": "Cached quotes"
+          },
+          "cache_updated": {
+            "name": "Cache updated"
+          },
+          "reference": {
+            "name": "Reference"
+          }
+        }
+      },
+      "author": {
+        "name": "Author"
+      },
+      "birthday": {
+        "name": "Birthday",
+        "state_attributes": {
+          "name": {
+            "name": "Name"
+          },
+          "born": {
+            "name": "Born"
+          },
+          "years_ago": {
+            "name": "Years ago"
+          },
+          "description": {
+            "name": "Description"
+          },
+          "summary": {
+            "name": "Summary"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Language"
+          }
+        }
+      },
+      "on_this_day": {
+        "name": "On this day",
+        "state_attributes": {
+          "text": {
+            "name": "Text"
+          },
+          "year": {
+            "name": "Year"
+          },
+          "years_ago": {
+            "name": "Years ago"
+          },
+          "category": {
+            "name": "Category",
+            "state": {
+              "science": "Science",
+              "history": "History"
+            }
+          },
+          "title": {
+            "name": "Title"
+          },
+          "url": {
+            "name": "URL"
+          },
+          "language": {
+            "name": "Language"
+          }
+        }
+      }
+    },
+    "button": {
+      "new_quote": {
+        "name": "New quote"
+      }
+    }
+  }
+}
