@@ -25,10 +25,10 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_CACHE_DAYS,
     CONF_LANGUAGE,
-    CONF_SOURCE,
+    CONF_SOURCES,
     DEFAULT_CACHE_DAYS,
     DEFAULT_LANGUAGE,
-    DEFAULT_SOURCE,
+    DEFAULT_SOURCES,
     DOMAIN,
     LANGUAGES,
     MAX_CACHE_DAYS,
@@ -37,15 +37,19 @@ from .const import (
 )
 
 
-def _schema(source: str, language: str, cache_days: int) -> vol.Schema:
+def _schema(sources: list[str], language: str, cache_days: int) -> vol.Schema:
     return vol.Schema(
         {
-            vol.Required(CONF_SOURCE, default=source): SelectSelector(
-                SelectSelectorConfig(
-                    options=SOURCES,
-                    translation_key=CONF_SOURCE,
-                    mode=SelectSelectorMode.LIST,
-                )
+            vol.Required(CONF_SOURCES, default=sources): vol.All(
+                SelectSelector(
+                    SelectSelectorConfig(
+                        options=SOURCES,
+                        translation_key=CONF_SOURCES,
+                        mode=SelectSelectorMode.LIST,
+                        multiple=True,
+                    )
+                ),
+                vol.Length(min=1),
             ),
             vol.Required(CONF_LANGUAGE, default=language): SelectSelector(
                 SelectSelectorConfig(
@@ -73,7 +77,7 @@ def _schema(source: str, language: str, cache_days: int) -> vol.Schema:
 class QuoteOfTheDayConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle the config flow."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -84,7 +88,7 @@ class QuoteOfTheDayConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_schema(DEFAULT_SOURCE, DEFAULT_LANGUAGE, DEFAULT_CACHE_DAYS),
+            data_schema=_schema(DEFAULT_SOURCES, DEFAULT_LANGUAGE, DEFAULT_CACHE_DAYS),
         )
 
     @staticmethod
@@ -108,7 +112,7 @@ class QuoteOfTheDayOptionsFlow(OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=_schema(
-                current.get(CONF_SOURCE, DEFAULT_SOURCE),
+                current.get(CONF_SOURCES, DEFAULT_SOURCES),
                 current.get(CONF_LANGUAGE, DEFAULT_LANGUAGE),
                 current.get(CONF_CACHE_DAYS, DEFAULT_CACHE_DAYS),
             ),

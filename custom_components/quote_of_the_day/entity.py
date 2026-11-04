@@ -26,4 +26,8 @@ class QuoteEntity(CoordinatorEntity[QuoteCoordinator]):
             manufacturer="Quote of the Day",
             entry_type=DeviceEntryType.SERVICE,
         )
-        self._attr_attribution = ATTRIBUTIONS.get(coordinator.source)
+
+    @property
+    def attribution(self) -> str | None:
+        """Credit the online source of the current quote, if any."""
+        return ATTRIBUTIONS.get(self.coordinator.data.quote.source)

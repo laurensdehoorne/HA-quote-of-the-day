@@ -17,6 +17,7 @@ from .const import (
     ATTR_FALLBACK,
     ATTR_LANGUAGE,
     ATTR_QUOTE,
+    ATTR_REFERENCE,
     ATTR_SOURCE,
 )
 from .coordinator import QuoteConfigEntry, QuoteCoordinator
@@ -68,20 +69,19 @@ class QuoteSensor(QuoteEntity, SensorEntity):
         attrs: dict[str, Any] = {
             ATTR_QUOTE: state.quote.text,
             ATTR_AUTHOR: state.quote.author,
+            ATTR_REFERENCE: state.quote.reference,
             ATTR_DATE: state.day.isoformat(),
-            ATTR_SOURCE: state.source,
+            ATTR_SOURCE: state.quote.source,
             ATTR_LANGUAGE: state.quote.language,
             ATTR_FALLBACK: state.fallback,
             # Same shape as a Feedparser sensor, so feed-based Lovelace cards
             # (e.g. quote-of-the-day-card with `feed_attribute: entries`) work.
             ATTR_ENTRIES: [{"title": state.quote.author, "summary": state.quote.text}],
         }
-        if coordinator.is_online:
-            cache = coordinator.cache
-            attrs[ATTR_CACHED_QUOTES] = len(cache.quotes)
-            attrs[ATTR_CACHE_UPDATED] = (
-                cache.updated.isoformat() if cache.updated else None
-            )
+        if coordinator.online_sources:
+            updated = coordinator.cache_updated
+            attrs[ATTR_CACHED_QUOTES] = coordinator.cached_quotes
+            attrs[ATTR_CACHE_UPDATED] = updated.isoformat() if updated else None
         return attrs
 
 

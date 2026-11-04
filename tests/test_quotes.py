@@ -1,55 +1,65 @@
-"""Tests for the built-in quotes and the ZenQuotes parser."""
+"""Tests for the built-in quotes, the quality filter and the parsers."""
 
 from __future__ import annotations
-
-from datetime import date, timedelta
 
 import pytest
 
 from custom_components.quote_of_the_day.api import (
     QuoteApiError,
     parse_brainyquote,
+    parse_favqs,
     parse_zenquotes,
 )
 from custom_components.quote_of_the_day.quotes import (
     BUILTIN_QUOTES,
-    daily_quote,
+    Quote,
+    is_good_quote,
+    normalize,
     quotes_for_language,
-    random_quote,
 )
 from custom_components.quote_of_the_day.sensor import truncate
 
 
-def test_daily_quote_is_deterministic() -> None:
-    day = date(2026, 11, 4)
-    assert daily_quote(day, "all") == daily_quote(day, "all")
-
-
-@pytest.mark.parametrize("language", ["all", "en", "nl"])
-def test_no_repeats_within_a_cycle(language: str) -> None:
-    quotes = quotes_for_language(language)
-    count = len(quotes)
-    start_ordinal = (date(2026, 1, 1).toordinal() // count + 1) * count
-    start = date.fromordinal(start_ordinal)
-    seen = {daily_quote(start + timedelta(days=i), language) for i in range(count)}
-    assert seen == set(quotes)
+def test_builtin_collection_is_clean() -> None:
+    keys = [q.key for q in BUILTIN_QUOTES]
+    assert len(set(keys)) == len(keys), "duplicate quotes"
+    for quote in BUILTIN_QUOTES:
+        assert quote.author, quote
+        assert len(quote.text) <= 255, quote
+        assert quote.language in ("en", "nl"), quote
+        # Everything not a proverb carries a reference to where it comes from,
+        # except a few well-known spoken quotes.
+        if "proverb" not in quote.author.lower() and quote.author != "Spreekwoord":
+            assert quote.reference or quote.author == "Johan Cruijff", quote
 
 
 def test_language_filter() -> None:
     assert all(q.language == "nl" for q in quotes_for_language("nl"))
     assert all(q.language == "en" for q in quotes_for_language("en"))
     assert quotes_for_language("xx") == BUILTIN_QUOTES
+    assert len(quotes_for_language("en")) >= 60
+    assert len(quotes_for_language("nl")) >= 30
 
 
-def test_random_quote_differs() -> None:
-    current = BUILTIN_QUOTES[0]
-    for _ in range(50):
-        assert random_quote("all", current) != current
+def test_normalize() -> None:
+    assert normalize("Be kind!") == normalize("be  kind")
 
 
-def test_quotes_are_unique_and_fit_state() -> None:
-    assert len(set(BUILTIN_QUOTES)) == len(BUILTIN_QUOTES)
-    assert all(len(q.text) <= 255 and q.author for q in BUILTIN_QUOTES)
+@pytest.mark.parametrize(
+    ("text", "author", "good"),
+    [
+        ("The best way out is always through.", "Robert Frost", True),
+        ("Short.", "Someone", False),
+        ("A perfectly fine sentence about life.", "Unknown", False),
+        ("A perfectly fine sentence about life.", "", False),
+        ("Visit https://example.com for more wisdom today.", "Spammer", False),
+        ("Follow us @quotes for daily wisdom every day.", "Spammer", False),
+        ("THIS IS A VERY LOUD QUOTE ABOUT LIFE.", "Loud Person", False),
+        ("word " * 60, "Long Winded", False),
+    ],
+)
+def test_is_good_quote(text: str, author: str, good: bool) -> None:
+    assert is_good_quote(Quote(text, author, "en", source="zenquotes")) is good
 
 
 def test_parse_zenquotes() -> None:
@@ -60,10 +70,19 @@ def test_parse_zenquotes() -> None:
             {"q": "Second &amp; last.", "a": "Other"},
         ]
     )
-    assert [(q.text, q.author) for q in quotes] == [
-        ("Be kind.", "Someone"),
-        ("Second & last.", "Other"),
+    assert [(q.text, q.author, q.source) for q in quotes] == [
+        ("Be kind.", "Someone", "zenquotes"),
+        ("Second & last.", "Other", "zenquotes"),
     ]
+
+
+@pytest.mark.parametrize(
+    "data",
+    [{}, [], ["x"], [{"q": "", "a": "x"}], [{"q": "Too many requests.", "a": "zenquotes.io"}]],
+)
+def test_parse_zenquotes_errors(data) -> None:
+    with pytest.raises(QuoteApiError):
+        parse_zenquotes(data)
 
 
 BRAINY_RSS = """<?xml version="1.0" encoding="UTF-8"?>
@@ -77,9 +96,13 @@ BRAINY_RSS = """<?xml version="1.0" encoding="UTF-8"?>
 
 def test_parse_brainyquote() -> None:
     quotes = parse_brainyquote(BRAINY_RSS)
-    assert [(q.text, q.author) for q in quotes] == [
-        ("The way to get started is to quit talking and begin doing.", "Walt Disney"),
-        ("Luck is what happens.", "Seneca"),
+    assert [(q.text, q.author, q.source) for q in quotes] == [
+        (
+            "The way to get started is to quit talking and begin doing.",
+            "Walt Disney",
+            "brainyquote",
+        ),
+        ("Luck is what happens.", "Seneca", "brainyquote"),
     ]
 
 
@@ -89,19 +112,26 @@ def test_parse_brainyquote_errors(xml: str) -> None:
         parse_brainyquote(xml)
 
 
-@pytest.mark.parametrize(
-    "data",
-    [
-        {},
-        [],
-        ["x"],
-        [{"q": "", "a": "x"}],
-        [{"q": "Too many requests. Obtain an auth key.", "a": "zenquotes.io"}],
-    ],
-)
-def test_parse_zenquotes_errors(data) -> None:
+def test_parse_favqs() -> None:
+    quotes = parse_favqs(
+        {
+            "qotd_date": "2026-11-04T00:00:00.000+00:00",
+            "quote": {
+                "id": 1,
+                "author": "Ada Lovelace",
+                "body": "That brain of mine is more than merely mortal.",
+            },
+        }
+    )
+    assert [(q.text, q.author, q.source) for q in quotes] == [
+        ("That brain of mine is more than merely mortal.", "Ada Lovelace", "favqs")
+    ]
+
+
+@pytest.mark.parametrize("data", [[], {}, {"quote": {"body": ""}}])
+def test_parse_favqs_errors(data) -> None:
     with pytest.raises(QuoteApiError):
-        parse_zenquotes(data)
+        parse_favqs(data)
 
 
 def test_truncate() -> None:

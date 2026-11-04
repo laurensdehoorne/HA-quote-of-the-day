@@ -15,15 +15,17 @@ import aiohttp
 
 from .const import (
     BRAINYQUOTE_RSS_URL,
+    FAVQS_QOTD_URL,
     LANGUAGE_EN,
     SOURCE_BRAINYQUOTE,
+    SOURCE_FAVQS,
     SOURCE_ZENQUOTES,
     ZENQUOTES_BATCH_URL,
 )
-from .quotes import Quote
+from .quotes import Quote, is_good_quote
 
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=20)
-USER_AGENT = "HomeAssistant-QuoteOfTheDay/1.1"
+USER_AGENT = "HomeAssistant-QuoteOfTheDay/1.2"
 
 
 class QuoteApiError(Exception):
@@ -31,12 +33,18 @@ class QuoteApiError(Exception):
 
 
 async def async_fetch_quotes(session: aiohttp.ClientSession, source: str) -> list[Quote]:
-    """Fetch a batch of quotes from an online source."""
+    """Fetch quotes from an online source; only quotes that pass the filter."""
     if source == SOURCE_ZENQUOTES:
-        return parse_zenquotes(await _async_get(session, ZENQUOTES_BATCH_URL, json=True))
-    if source == SOURCE_BRAINYQUOTE:
-        return parse_brainyquote(await _async_get(session, BRAINYQUOTE_RSS_URL, json=False))
-    raise QuoteApiError(f"Unknown online source: {source}")
+        quotes = parse_zenquotes(await _async_get(session, ZENQUOTES_BATCH_URL, json=True))
+    elif source == SOURCE_BRAINYQUOTE:
+        quotes = parse_brainyquote(
+            await _async_get(session, BRAINYQUOTE_RSS_URL, json=False)
+        )
+    elif source == SOURCE_FAVQS:
+        quotes = parse_favqs(await _async_get(session, FAVQS_QOTD_URL, json=True))
+    else:
+        raise QuoteApiError(f"Unknown online source: {source}")
+    return [q for q in quotes if is_good_quote(q)]
 
 
 async def _async_get(session: aiohttp.ClientSession, url: str, *, json: bool) -> Any:
@@ -73,7 +81,7 @@ def parse_zenquotes(data: Any) -> list[Quote]:
         # When rate limited, ZenQuotes answers with a "quote" that is a notice.
         if not text or author.lower() == "zenquotes.io":
             continue
-        quotes.append(Quote(text, author, LANGUAGE_EN))
+        quotes.append(Quote(text, author, LANGUAGE_EN, source=SOURCE_ZENQUOTES))
     if not quotes:
         raise QuoteApiError(f"No usable quotes from ZenQuotes: {data!r:.200}")
     return quotes
@@ -90,7 +98,19 @@ def parse_brainyquote(xml_text: str) -> list[Quote]:
         text = _clean(item.findtext("description") or "")
         author = _clean(item.findtext("title") or "")
         if text:
-            quotes.append(Quote(text, author, LANGUAGE_EN))
+            quotes.append(Quote(text, author, LANGUAGE_EN, source=SOURCE_BRAINYQUOTE))
     if not quotes:
         raise QuoteApiError("BrainyQuote feed contains no quotes")
     return quotes
+
+
+def parse_favqs(data: Any) -> list[Quote]:
+    """Parse the FavQs quote of the day: ``{"quote": {"body": ..., "author": ...}}``."""
+    item = data.get("quote") if isinstance(data, dict) else None
+    if not isinstance(item, dict):
+        raise QuoteApiError(f"Unexpected FavQs response: {data!r:.200}")
+    text = _clean(str(item.get("body") or ""))
+    author = _clean(str(item.get("author") or ""))
+    if not text:
+        raise QuoteApiError(f"FavQs response without quote: {data!r:.200}")
+    return [Quote(text, author, LANGUAGE_EN, source=SOURCE_FAVQS)]

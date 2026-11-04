@@ -5,13 +5,13 @@
         "title": "Quote of the Day",
         "description": "Kies waar het citaat van de dag vandaan komt.",
         "data": {
-          "source": "Bron",
+          "sources": "Bronnen",
           "language": "Taal",
           "cache_days": "Cacheduur (dagen)"
         },
         "data_description": {
-          "source": "De ingebouwde verzameling werkt offline. ZenQuotes en BrainyQuote zijn Engelstalige online bronnen: een reeks citaten wordt in één keer opgehaald en bewaard, zodat internet alleen nodig is als de cache vernieuwd wordt.",
-          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve zolang een online bron niet bereikbaar is).",
+          "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
+          "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
         }
       }
@@ -25,24 +25,25 @@
       "init": {
         "title": "Opties voor Quote of the Day",
         "data": {
-          "source": "Bron",
+          "sources": "Bronnen",
           "language": "Taal",
           "cache_days": "Cacheduur (dagen)"
         },
         "data_description": {
-          "source": "De ingebouwde verzameling werkt offline. ZenQuotes en BrainyQuote zijn Engelstalige online bronnen: een reeks citaten wordt in één keer opgehaald en bewaard, zodat internet alleen nodig is als de cache vernieuwd wordt.",
-          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve zolang een online bron niet bereikbaar is).",
+          "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
+          "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
         }
       }
     }
   },
   "selector": {
-    "source": {
+    "sources": {
       "options": {
-        "builtin": "Ingebouwde verzameling (offline)",
+        "builtin": "Ingebouwde verzameling (gecontroleerd, offline)",
         "zenquotes": "ZenQuotes (online, Engels)",
-        "brainyquote": "BrainyQuote (online, Engels)"
+        "brainyquote": "BrainyQuote (online, Engels)",
+        "favqs": "FavQs (online, Engels)"
       }
     },
     "language": {
@@ -84,6 +85,9 @@
           },
           "cache_updated": {
             "name": "Cache bijgewerkt"
+          },
+          "reference": {
+            "name": "Bron van het citaat"
           }
         }
       },

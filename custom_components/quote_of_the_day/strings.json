@@ -5,13 +5,13 @@
         "title": "Quote of the Day",
         "description": "Choose where the daily quote comes from.",
         "data": {
-          "source": "Source",
+          "sources": "Sources",
           "language": "Language",
           "cache_days": "Cache duration (days)"
         },
         "data_description": {
-          "source": "Built-in works offline. ZenQuotes and BrainyQuote are English online sources: a batch of quotes is downloaded and cached, so the internet is only used when the cache is refreshed.",
-          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback while an online source is unreachable).",
+          "sources": "Pick one or more sources; quotes from all of them are combined. The built-in collection is curated and works offline. ZenQuotes, BrainyQuote and FavQs are English online sources: their quotes are downloaded, filtered for quality and cached.",
+          "language": "Which quotes to show. Online sources are English, so with 'Dutch' only the built-in collection is used.",
           "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources."
         }
       }
@@ -25,24 +25,25 @@
       "init": {
         "title": "Quote of the Day options",
         "data": {
-          "source": "Source",
+          "sources": "Sources",
           "language": "Language",
           "cache_days": "Cache duration (days)"
         },
         "data_description": {
-          "source": "Built-in works offline. ZenQuotes and BrainyQuote are English online sources: a batch of quotes is downloaded and cached, so the internet is only used when the cache is refreshed.",
-          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback while an online source is unreachable).",
+          "sources": "Pick one or more sources; quotes from all of them are combined. The built-in collection is curated and works offline. ZenQuotes, BrainyQuote and FavQs are English online sources: their quotes are downloaded, filtered for quality and cached.",
+          "language": "Which quotes to show. Online sources are English, so with 'Dutch' only the built-in collection is used.",
           "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources."
         }
       }
     }
   },
   "selector": {
-    "source": {
+    "sources": {
       "options": {
-        "builtin": "Built-in collection (offline)",
+        "builtin": "Built-in collection (curated, offline)",
         "zenquotes": "ZenQuotes (online, English)",
-        "brainyquote": "BrainyQuote (online, English)"
+        "brainyquote": "BrainyQuote (online, English)",
+        "favqs": "FavQs (online, English)"
       }
     },
     "language": {
@@ -84,6 +85,9 @@
           },
           "cache_updated": {
             "name": "Cache updated"
+          },
+          "reference": {
+            "name": "Reference"
           }
         }
       },
