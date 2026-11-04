@@ -92,6 +92,9 @@
           },
           "reference": {
             "name": "Reference"
+          },
+          "disliked_quotes": {
+            "name": "Disliked quotes"
           }
         }
       },
@@ -158,6 +161,12 @@
     "button": {
       "new_quote": {
         "name": "New quote"
+      },
+      "dislike_quote": {
+        "name": "Dislike quote"
+      },
+      "restore_disliked": {
+        "name": "Restore disliked quotes"
       }
     }
   }

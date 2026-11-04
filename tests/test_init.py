@@ -323,3 +323,51 @@ async def test_options_and_unload(hass: HomeAssistant) -> None:
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+DISLIKE_BUTTON = "button.quote_of_the_day_dislike_quote"
+RESTORE_BUTTON = "button.quote_of_the_day_restore_disliked_quotes"
+
+
+async def _press(hass: HomeAssistant, entity_id: str) -> None:
+    await hass.services.async_call("button", "press", {"entity_id": entity_id}, blocking=True)
+
+
+async def test_dislike_quote(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
+    freezer.move_to("2026-11-04 12:00:00+00:00")
+    entry = await _setup(hass, language="nl")
+    disliked = hass.states.get(QUOTE_SENSOR).state
+
+    await _press(hass, DISLIKE_BUTTON)
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.state != disliked
+    assert state.attributes["disliked_quotes"] == 1
+
+    # Never shown again: not in a whole round, and not after a restart.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(QUOTE_SENSOR).attributes["disliked_quotes"] == 1
+    shown = set()
+    for _ in range(len(quotes_for_language("nl")) * 2):
+        shown.add((await _next_day(hass, freezer)).state)
+    assert disliked not in shown
+    assert len(shown) == len(quotes_for_language("nl")) - 1
+
+    # Restore: allowed again.
+    await _press(hass, RESTORE_BUTTON)
+    assert hass.states.get(QUOTE_SENSOR).attributes["disliked_quotes"] == 0
+    shown = set()
+    for _ in range(len(quotes_for_language("nl"))):
+        shown.add((await _next_day(hass, freezer)).state)
+    assert disliked in shown
+
+
+async def test_dislike_everything_still_shows_a_quote(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        ZENQUOTES_BATCH_URL, json=[{"q": "The one and only good quote.", "a": "Someone"}]
+    )
+    await _setup(hass, sources=["zenquotes"])
+    await _press(hass, DISLIKE_BUTTON)
+    assert hass.states.get(QUOTE_SENSOR).state == "The one and only good quote."

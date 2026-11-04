@@ -92,6 +92,9 @@
           },
           "reference": {
             "name": "Bron van het citaat"
+          },
+          "disliked_quotes": {
+            "name": "Afgekeurde citaten"
           }
         }
       },
@@ -158,6 +161,12 @@
     "button": {
       "new_quote": {
         "name": "Nieuw citaat"
+      },
+      "dislike_quote": {
+        "name": "Citaat afkeuren"
+      },
+      "restore_disliked": {
+        "name": "Afgekeurde citaten terugzetten"
       }
     }
   }

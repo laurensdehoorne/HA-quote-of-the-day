@@ -139,6 +139,8 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
         self.caches: dict[str, SourceCache] = {}
         # Keys of quotes already shown, so none repeats until all were shown.
         self.history: list[str] = []
+        # Quotes the user marked as "not good": never shown again.
+        self.disliked: dict[str, dict[str, Any]] = {}
 
     # --- settings ---------------------------------------------------------
 
@@ -184,6 +186,7 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
                 for source, data in stored.get("caches", {}).items()
             }
             self.history = [str(k) for k in stored.get("history", [])]
+            self.disliked = dict(stored.get("disliked", {}))
         except (KeyError, TypeError, ValueError, AttributeError):
             _LOGGER.debug("Ignoring invalid stored data: %s", stored)
 
@@ -207,6 +210,7 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
                 "current": state.as_dict(),
                 "caches": {s: c.as_dict() for s, c in self.caches.items()},
                 "history": self.history,
+                "disliked": self.disliked,
             }
         )
 
@@ -290,7 +294,9 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
             if quote.key not in seen:
                 seen.add(quote.key)
                 unique.append(quote)
-        return unique, False
+        liked = [q for q in unique if q.key not in self.disliked]
+        # If everything was disliked, showing something beats showing nothing.
+        return liked or unique, False
 
     def _is_current(self, state: QuoteState | None, today: date) -> bool:
         if state is None or state.day != today or state.settings != self._settings:
@@ -339,3 +345,18 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
         state = self._pick(now.date(), new=True)
         await self._async_save(state)
         self.async_set_updated_data(state)
+
+    async def async_dislike_quote(self) -> None:
+        """Never show the current quote again and replace it."""
+        if self.data is not None:
+            quote = self.data.quote
+            self.disliked[quote.key] = {"text": quote.text, "author": quote.author}
+            _LOGGER.debug("Disliked quote: %s (%s)", quote.text, quote.author)
+        await self.async_new_quote()
+
+    async def async_restore_disliked(self) -> None:
+        """Allow all disliked quotes again."""
+        self.disliked = {}
+        if self.data is not None:
+            await self._async_save(self.data)
+            self.async_set_updated_data(self.data)

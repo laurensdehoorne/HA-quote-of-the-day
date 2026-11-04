@@ -47,6 +47,10 @@ your dashboard, a morning notification or a TTS announcement.
     Assistant's language with "All"), falling back to English. The coming
     week is fetched ahead and cached, so a few days offline go unnoticed.
 - **"New quote" button** to swap today's quote for a random one.
+- **"Dislike quote" button**: a quote you don't like is replaced right away
+  and never shown again (also not after a cache refresh or restart). The
+  "Restore disliked quotes" button (under the device's configuration) undoes
+  this.
 - Set up and configured from the UI, translated in English and Dutch.
 
 ## Installation
@@ -73,14 +77,58 @@ pick the sources, language and cache duration. All can be changed later via
 
 | Entity | Description |
 | --- | --- |
-| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `reference`, `date`, `source` (where this quote came from), `language`, `fallback`, `entries` (for feed cards) and, for online sources, `cached_quotes` and `cache_updated`. |
+| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `reference`, `date`, `source` (where this quote came from), `language`, `fallback`, `entries` (for feed cards), `disliked_quotes` and, for online sources, `cached_quotes` and `cache_updated`. |
 | `sensor.quote_of_the_day_author` | The author of the quote. |
 | `sensor.quote_of_the_day_birthday` | Famous person born on this day. Picture: their photo. Attributes: `name`, `born`, `years_ago`, `description`, `summary`, `url`. |
 | `sensor.quote_of_the_day_on_this_day` | "year: event". Picture: from the article. Attributes: `text`, `year`, `years_ago`, `category` (`science`/`history`), `title`, `url`. |
 | `button.quote_of_the_day_new_quote` | Replaces today's quote with a random one. |
+| `button.quote_of_the_day_dislike_quote` | Marks today's quote as not good: it is replaced and never shown again. |
+| `button.quote_of_the_day_restore_disliked_quotes` | Allows all disliked quotes again (configuration entity). |
 
 The state of a sensor is limited to 255 characters; longer quotes are cut off
 with "…" in the state, the full text is always in the `quote` attribute.
+
+## Dashboard card
+
+The integration ships its own card, **`custom:daily-quote-card`**. It is
+loaded automatically: no HACS frontend plugin and no resource to add. After
+installing (or updating) the integration, refresh your browser once.
+
+It shows the quote with author and source, the famous birthday with photo,
+and the fact of the day with a science/history label, plus buttons for a
+new quote and for "not a good quote" (tap twice to confirm). It follows your theme (light/dark) and your language (English or
+Dutch).
+
+Add it via **Edit dashboard → Add card → Quote of the Day**, or in YAML:
+
+```yaml
+type: custom:daily-quote-card
+```
+
+All options are optional and can also be set in the visual editor:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `show_quote` | `true` | Show the quote. |
+| `show_reference` | `true` | Show where the quote comes from. |
+| `show_birthday` | `true` | Show the famous birthday. |
+| `show_fact` | `true` | Show the fact of the day. |
+| `show_images` | `true` | Show the pictures from Wikipedia. |
+| `show_new_quote_button` | `true` | Show the "new quote" button. |
+| `show_dislike_button` | `true` | Show the "not a good quote" button. |
+| `quote_entity` | `sensor.quote_of_the_day_quote` | Quote sensor. |
+| `birthday_entity` | `sensor.quote_of_the_day_birthday` | Birthday sensor. |
+| `fact_entity` | `sensor.quote_of_the_day_on_this_day` | Fact sensor. |
+| `button_entity` | `button.quote_of_the_day_new_quote` | New quote button. |
+| `dislike_entity` | `button.quote_of_the_day_dislike_quote` | Dislike button. |
+
+Example, only the quote:
+
+```yaml
+type: custom:daily-quote-card
+show_birthday: false
+show_fact: false
+```
 
 ## Examples
 
