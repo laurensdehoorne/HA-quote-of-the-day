@@ -1,0 +1,86 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Quote of the Day",
+        "description": "Choose where the daily quote comes from.",
+        "data": {
+          "source": "Source",
+          "language": "Language"
+        },
+        "data_description": {
+          "source": "The built-in collection works offline. ZenQuotes fetches an English quote from zenquotes.io.",
+          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback when ZenQuotes is unreachable)."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Quote of the Day is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Quote of the Day options",
+        "data": {
+          "source": "Source",
+          "language": "Language"
+        },
+        "data_description": {
+          "source": "The built-in collection works offline. ZenQuotes fetches an English quote from zenquotes.io.",
+          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback when ZenQuotes is unreachable)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "source": {
+      "options": {
+        "builtin": "Built-in collection (offline)",
+        "zenquotes": "ZenQuotes (online, English)"
+      }
+    },
+    "language": {
+      "options": {
+        "all": "All languages",
+        "en": "English",
+        "nl": "Dutch"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "quote": {
+        "name": "Quote",
+        "state_attributes": {
+          "quote": {
+            "name": "Quote"
+          },
+          "author": {
+            "name": "Author"
+          },
+          "date": {
+            "name": "Date"
+          },
+          "source": {
+            "name": "Source"
+          },
+          "language": {
+            "name": "Language"
+          },
+          "fallback": {
+            "name": "Fallback"
+          }
+        }
+      },
+      "author": {
+        "name": "Author"
+      }
+    },
+    "button": {
+      "new_quote": {
+        "name": "New quote"
+      }
+    }
+  }
+}

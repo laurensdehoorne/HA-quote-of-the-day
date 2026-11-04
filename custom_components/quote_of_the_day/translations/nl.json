@@ -1,0 +1,86 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Quote of the Day",
+        "description": "Kies waar het citaat van de dag vandaan komt.",
+        "data": {
+          "source": "Bron",
+          "language": "Taal"
+        },
+        "data_description": {
+          "source": "De ingebouwde verzameling werkt offline. ZenQuotes haalt een Engelstalig citaat op van zenquotes.io.",
+          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve wanneer ZenQuotes niet bereikbaar is)."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Quote of the Day is al ingesteld."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties voor Quote of the Day",
+        "data": {
+          "source": "Bron",
+          "language": "Taal"
+        },
+        "data_description": {
+          "source": "De ingebouwde verzameling werkt offline. ZenQuotes haalt een Engelstalig citaat op van zenquotes.io.",
+          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve wanneer ZenQuotes niet bereikbaar is)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "source": {
+      "options": {
+        "builtin": "Ingebouwde verzameling (offline)",
+        "zenquotes": "ZenQuotes (online, Engels)"
+      }
+    },
+    "language": {
+      "options": {
+        "all": "Alle talen",
+        "en": "Engels",
+        "nl": "Nederlands"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "quote": {
+        "name": "Citaat",
+        "state_attributes": {
+          "quote": {
+            "name": "Citaat"
+          },
+          "author": {
+            "name": "Auteur"
+          },
+          "date": {
+            "name": "Datum"
+          },
+          "source": {
+            "name": "Bron"
+          },
+          "language": {
+            "name": "Taal"
+          },
+          "fallback": {
+            "name": "Reserve"
+          }
+        }
+      },
+      "author": {
+        "name": "Auteur"
+      }
+    },
+    "button": {
+      "new_quote": {
+        "name": "Nieuw citaat"
+      }
+    }
+  }
+}
