@@ -82,6 +82,46 @@ pick the sources, language and cache duration. All can be changed later via
 The state of a sensor is limited to 255 characters; longer quotes are cut off
 with "…" in the state, the full text is always in the `quote` attribute.
 
+## Dashboard card
+
+The integration ships its own card, **`custom:daily-quote-card`**. It is
+loaded automatically: no HACS frontend plugin and no resource to add. After
+installing (or updating) the integration, refresh your browser once.
+
+It shows the quote with author and source, the famous birthday with photo,
+and the fact of the day with a science/history label, plus a button for a
+new quote. It follows your theme (light/dark) and your language (English or
+Dutch).
+
+Add it via **Edit dashboard → Add card → Quote of the Day**, or in YAML:
+
+```yaml
+type: custom:daily-quote-card
+```
+
+All options are optional and can also be set in the visual editor:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `show_quote` | `true` | Show the quote. |
+| `show_reference` | `true` | Show where the quote comes from. |
+| `show_birthday` | `true` | Show the famous birthday. |
+| `show_fact` | `true` | Show the fact of the day. |
+| `show_images` | `true` | Show the pictures from Wikipedia. |
+| `show_new_quote_button` | `true` | Show the "new quote" button. |
+| `quote_entity` | `sensor.quote_of_the_day_quote` | Quote sensor. |
+| `birthday_entity` | `sensor.quote_of_the_day_birthday` | Birthday sensor. |
+| `fact_entity` | `sensor.quote_of_the_day_on_this_day` | Fact sensor. |
+| `button_entity` | `button.quote_of_the_day_new_quote` | New quote button. |
+
+Example, only the quote:
+
+```yaml
+type: custom:daily-quote-card
+show_birthday: false
+show_fact: false
+```
+
 ## Examples
 
 ### Dashboard card
