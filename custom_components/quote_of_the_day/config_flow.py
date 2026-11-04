@@ -14,23 +14,30 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
 )
 
 from .const import (
+    CONF_CACHE_DAYS,
     CONF_LANGUAGE,
     CONF_SOURCE,
+    DEFAULT_CACHE_DAYS,
     DEFAULT_LANGUAGE,
     DEFAULT_SOURCE,
     DOMAIN,
     LANGUAGES,
+    MAX_CACHE_DAYS,
+    MIN_CACHE_DAYS,
     SOURCES,
 )
 
 
-def _schema(source: str, language: str) -> vol.Schema:
+def _schema(source: str, language: str, cache_days: int) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_SOURCE, default=source): SelectSelector(
@@ -46,6 +53,18 @@ def _schema(source: str, language: str) -> vol.Schema:
                     translation_key=CONF_LANGUAGE,
                     mode=SelectSelectorMode.DROPDOWN,
                 )
+            ),
+            vol.Required(CONF_CACHE_DAYS, default=cache_days): vol.All(
+                NumberSelector(
+                    NumberSelectorConfig(
+                        min=MIN_CACHE_DAYS,
+                        max=MAX_CACHE_DAYS,
+                        step=1,
+                        mode=NumberSelectorMode.BOX,
+                        unit_of_measurement="days",
+                    )
+                ),
+                vol.Coerce(int),
             ),
         }
     )
@@ -64,7 +83,8 @@ class QuoteOfTheDayConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title="Quote of the Day", data=user_input)
 
         return self.async_show_form(
-            step_id="user", data_schema=_schema(DEFAULT_SOURCE, DEFAULT_LANGUAGE)
+            step_id="user",
+            data_schema=_schema(DEFAULT_SOURCE, DEFAULT_LANGUAGE, DEFAULT_CACHE_DAYS),
         )
 
     @staticmethod
@@ -90,5 +110,6 @@ class QuoteOfTheDayOptionsFlow(OptionsFlow):
             data_schema=_schema(
                 current.get(CONF_SOURCE, DEFAULT_SOURCE),
                 current.get(CONF_LANGUAGE, DEFAULT_LANGUAGE),
+                current.get(CONF_CACHE_DAYS, DEFAULT_CACHE_DAYS),
             ),
         )

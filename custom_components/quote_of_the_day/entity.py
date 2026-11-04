@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, SOURCE_ZENQUOTES, ZENQUOTES_ATTRIBUTION
+from .const import ATTRIBUTIONS, DOMAIN
 from .coordinator import QuoteCoordinator
 
 
@@ -26,5 +26,4 @@ class QuoteEntity(CoordinatorEntity[QuoteCoordinator]):
             manufacturer="Quote of the Day",
             entry_type=DeviceEntryType.SERVICE,
         )
-        if coordinator.source == SOURCE_ZENQUOTES:
-            self._attr_attribution = ZENQUOTES_ATTRIBUTION
+        self._attr_attribution = ATTRIBUTIONS.get(coordinator.source)

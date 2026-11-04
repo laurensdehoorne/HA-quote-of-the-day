@@ -6,7 +6,11 @@ from datetime import date, timedelta
 
 import pytest
 
-from custom_components.quote_of_the_day.api import QuoteApiError, parse_zenquotes
+from custom_components.quote_of_the_day.api import (
+    QuoteApiError,
+    parse_brainyquote,
+    parse_zenquotes,
+)
 from custom_components.quote_of_the_day.quotes import (
     BUILTIN_QUOTES,
     daily_quote,
@@ -49,9 +53,40 @@ def test_quotes_are_unique_and_fit_state() -> None:
 
 
 def test_parse_zenquotes() -> None:
-    quote = parse_zenquotes([{"q": " Be kind. ", "a": "Someone", "h": "<b>x</b>"}])
-    assert quote.text == "Be kind."
-    assert quote.author == "Someone"
+    quotes = parse_zenquotes(
+        [
+            {"q": " Be kind. ", "a": "Someone", "h": "<b>x</b>"},
+            {"q": "Too many requests.", "a": "zenquotes.io"},
+            {"q": "Second &amp; last.", "a": "Other"},
+        ]
+    )
+    assert [(q.text, q.author) for q in quotes] == [
+        ("Be kind.", "Someone"),
+        ("Second & last.", "Other"),
+    ]
+
+
+BRAINY_RSS = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Quotes</title>
+<item><title>Walt Disney</title>
+<description>"The way to get started is to quit talking and begin doing."</description>
+<link>https://www.brainyquote.com/x</link></item>
+<item><title>Seneca</title><description>&quot;Luck is what happens.&quot;</description></item>
+</channel></rss>"""
+
+
+def test_parse_brainyquote() -> None:
+    quotes = parse_brainyquote(BRAINY_RSS)
+    assert [(q.text, q.author) for q in quotes] == [
+        ("The way to get started is to quit talking and begin doing.", "Walt Disney"),
+        ("Luck is what happens.", "Seneca"),
+    ]
+
+
+@pytest.mark.parametrize("xml", ["not xml", "<rss><channel></channel></rss>"])
+def test_parse_brainyquote_errors(xml: str) -> None:
+    with pytest.raises(QuoteApiError):
+        parse_brainyquote(xml)
 
 
 @pytest.mark.parametrize(

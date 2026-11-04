@@ -7,12 +7,21 @@ your dashboard, a morning notification or a TTS announcement.
 
 - **Daily quote** that changes at midnight (local time) and stays the same
   across restarts.
-- **Two sources**
+- **Three sources**
   - *Built-in collection* – works fully offline, English and Dutch quotes and
     proverbs. No quote repeats until the whole collection has been shown.
-  - *ZenQuotes* – an English quote of the day from [zenquotes.io](https://zenquotes.io/).
-    When it is unreachable, the integration falls back to the built-in
-    collection and retries automatically.
+  - *ZenQuotes* – English quotes from [zenquotes.io](https://zenquotes.io/).
+  - *BrainyQuote* – English quotes from the
+    [BrainyQuote RSS feed](https://www.brainyquote.com/link/quotebr.rss)
+    (the same feed the Feedparser setup of quote-of-the-day-card uses).
+- **Long-lived cache for online sources.** Quotes are downloaded in a batch
+  and kept on disk; the online source is only contacted again after the
+  cache duration (default **28 days**, configurable 1–90). New quotes are
+  merged into the cache, so it grows over time. Each day a quote is picked
+  from the cache that has not been shown yet.
+- **Works offline.** If an online source can't be reached and there is no
+  cache yet, a built-in quote is shown (`fallback: true`) and the source is
+  retried after an hour.
 - **Language filter** for the built-in collection: all, English or Dutch.
 - **"New quote" button** to swap today's quote for a random one.
 - Set up and configured from the UI, translated in English and Dutch.
@@ -34,13 +43,14 @@ of your Home Assistant configuration and restart Home Assistant.
 ## Setup
 
 **Settings → Devices & services → Add integration → Quote of the Day**, then
-pick a source and language. Both can be changed later via **Configure**.
+pick a source, language and cache duration. All can be changed later via
+**Configure**.
 
 ## Entities
 
 | Entity | Description |
 | --- | --- |
-| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `date`, `source`, `language`, `fallback`. |
+| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `date`, `source`, `language`, `fallback`, `entries` (for feed cards) and, for online sources, `cached_quotes` and `cache_updated`. |
 | `sensor.quote_of_the_day_author` | The author of the quote. |
 | `button.quote_of_the_day_new_quote` | Replaces today's quote with a random one. |
 
@@ -57,6 +67,18 @@ content: >
   > {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
 
   — *{{ state_attr('sensor.quote_of_the_day_quote', 'author') }}*
+```
+
+### quote-of-the-day-card
+
+The sensor has an `entries` attribute in the same format as a Feedparser
+sensor, so [quote-of-the-day-card](https://github.com/dnguyen800/quote-of-the-day-card)
+works without Feedparser:
+
+```yaml
+type: custom:quote-of-the-day-card
+entity: sensor.quote_of_the_day_quote
+feed_attribute: entries
 ```
 
 ### Morning notification
@@ -95,4 +117,5 @@ pytest
 ---
 
 Quotes from the ZenQuotes source are provided by the
-[ZenQuotes API](https://zenquotes.io/).
+[ZenQuotes API](https://zenquotes.io/). Quotes from the BrainyQuote source
+are provided by [BrainyQuote](https://www.brainyquote.com/).

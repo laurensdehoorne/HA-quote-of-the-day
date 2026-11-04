@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from freezegun.api import FrozenDateTimeFactory
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -19,9 +21,9 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from custom_components.quote_of_the_day.const import (
+    BRAINYQUOTE_RSS_URL,
     DOMAIN,
-    ZENQUOTES_RANDOM_URL,
-    ZENQUOTES_TODAY_URL,
+    ZENQUOTES_BATCH_URL,
 )
 from custom_components.quote_of_the_day.quotes import daily_quote
 
@@ -48,10 +50,10 @@ async def test_config_flow(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"source": "builtin", "language": "nl"}
+        result["flow_id"], {"source": "builtin", "language": "nl", "cache_days": 14}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"] == {"source": "builtin", "language": "nl"}
+    assert result["data"] == {"source": "builtin", "language": "nl", "cache_days": 14}
     await hass.async_block_till_done()
 
     state = hass.states.get(QUOTE_SENSOR)
@@ -121,39 +123,119 @@ async def test_changes_at_midnight(
     assert state.state == daily_quote(dt_util.now().date(), "all").text
 
 
-async def test_zenquotes(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+ZEN_BATCH = [{"q": f"Zen quote {i}.", "a": f"Author {i}"} for i in range(5)]
+
+
+async def test_zenquotes_cache(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
-    aioclient_mock.get(
-        ZENQUOTES_TODAY_URL, json=[{"q": "Today quote.", "a": "Zen Author"}]
-    )
-    aioclient_mock.get(
-        ZENQUOTES_RANDOM_URL, json=[{"q": "Random quote.", "a": "Other Author"}]
-    )
-    await _setup(hass, source="zenquotes")
+    freezer.move_to("2026-11-04 12:00:00+00:00")
+    aioclient_mock.get(ZENQUOTES_BATCH_URL, json=ZEN_BATCH)
+    await _setup(hass, source="zenquotes", cache_days=28)
+    assert aioclient_mock.call_count == 1
 
     state = hass.states.get(QUOTE_SENSOR)
-    assert state.state == "Today quote."
-    assert state.attributes["author"] == "Zen Author"
+    texts = {q["q"] for q in ZEN_BATCH}
+    assert state.state in texts
     assert state.attributes["source"] == "zenquotes"
+    assert state.attributes["fallback"] is False
+    assert state.attributes["cached_quotes"] == 5
+    assert state.attributes["entries"] == [
+        {"title": state.attributes["author"], "summary": state.state}
+    ]
     assert "ZenQuotes" in state.attributes["attribution"]
 
+    # The next days use the cache: no new requests, no repeats.
+    shown = [state.state]
+    for _ in range(4):
+        freezer.tick(timedelta(days=1))
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        shown.append(hass.states.get(QUOTE_SENSOR).state)
+    assert sorted(shown) == sorted(texts)
+    assert aioclient_mock.call_count == 1
+
+    # The button picks from the cache too.
     await hass.services.async_call(
         "button", "press", {"entity_id": NEW_QUOTE_BUTTON}, blocking=True
     )
-    assert hass.states.get(QUOTE_SENSOR).state == "Random quote."
+    assert hass.states.get(QUOTE_SENSOR).state in texts
+    assert aioclient_mock.call_count == 1
+
+    # After the cache duration, a new batch is fetched and merged.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(
+        ZENQUOTES_BATCH_URL, json=[*ZEN_BATCH, {"q": "Brand new.", "a": "New"}]
+    )
+    freezer.tick(timedelta(days=28))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert aioclient_mock.call_count == 1
+    assert hass.states.get(QUOTE_SENSOR).attributes["cached_quotes"] == 6
 
 
-async def test_zenquotes_fallback(
+async def test_cache_survives_restart(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
 ) -> None:
-    aioclient_mock.get(ZENQUOTES_TODAY_URL, status=500)
+    aioclient_mock.get(ZENQUOTES_BATCH_URL, json=ZEN_BATCH)
+    entry = await _setup(hass, source="zenquotes")
+    before = hass.states.get(QUOTE_SENSOR).state
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert aioclient_mock.call_count == 1
+    assert hass.states.get(QUOTE_SENSOR).state == before
+
+
+async def test_brainyquote(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        BRAINYQUOTE_RSS_URL,
+        text=(
+            "<rss><channel><item><title>Walt Disney</title>"
+            "<description>&quot;Just start.&quot;</description></item>"
+            "</channel></rss>"
+        ),
+    )
+    await _setup(hass, source="brainyquote")
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.state == "Just start."
+    assert hass.states.get(AUTHOR_SENSOR).state == "Walt Disney"
+    assert "BrainyQuote" in state.attributes["attribution"]
+
+
+async def test_online_fallback_and_recovery(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    freezer.move_to("2026-11-04 12:00:00+00:00")
+    aioclient_mock.get(ZENQUOTES_BATCH_URL, status=500)
     await _setup(hass, source="zenquotes", language="nl")
 
     state = hass.states.get(QUOTE_SENSOR)
     assert state.attributes["fallback"] is True
     assert state.attributes["language"] == "nl"
     assert state.state == daily_quote(dt_util.now().date(), "nl").text
+
+    # No retry within the hour.
+    freezer.tick(timedelta(minutes=31))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert aioclient_mock.call_count == 1
+
+    # The source works again: switch to an online quote the same day.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(ZENQUOTES_BATCH_URL, json=ZEN_BATCH)
+    freezer.tick(timedelta(minutes=31))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.attributes["fallback"] is False
+    assert state.state in {q["q"] for q in ZEN_BATCH}
 
 
 async def test_options_and_unload(hass: HomeAssistant) -> None:
@@ -163,7 +245,7 @@ async def test_options_and_unload(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"source": "builtin", "language": "en"}
+        result["flow_id"], {"source": "builtin", "language": "en", "cache_days": 28}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()

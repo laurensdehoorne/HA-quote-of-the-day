@@ -10,7 +10,10 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
     ATTR_AUTHOR,
+    ATTR_CACHE_UPDATED,
+    ATTR_CACHED_QUOTES,
     ATTR_DATE,
+    ATTR_ENTRIES,
     ATTR_FALLBACK,
     ATTR_LANGUAGE,
     ATTR_QUOTE,
@@ -60,15 +63,26 @@ class QuoteSensor(QuoteEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the full quote and its details."""
-        state = self.coordinator.data
-        return {
+        coordinator = self.coordinator
+        state = coordinator.data
+        attrs: dict[str, Any] = {
             ATTR_QUOTE: state.quote.text,
             ATTR_AUTHOR: state.quote.author,
             ATTR_DATE: state.day.isoformat(),
             ATTR_SOURCE: state.source,
             ATTR_LANGUAGE: state.quote.language,
             ATTR_FALLBACK: state.fallback,
+            # Same shape as a Feedparser sensor, so feed-based Lovelace cards
+            # (e.g. quote-of-the-day-card with `feed_attribute: entries`) work.
+            ATTR_ENTRIES: [{"title": state.quote.author, "summary": state.quote.text}],
         }
+        if coordinator.is_online:
+            cache = coordinator.cache
+            attrs[ATTR_CACHED_QUOTES] = len(cache.quotes)
+            attrs[ATTR_CACHE_UPDATED] = (
+                cache.updated.isoformat() if cache.updated else None
+            )
+        return attrs
 
 
 class AuthorSensor(QuoteEntity, SensorEntity):

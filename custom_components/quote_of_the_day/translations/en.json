@@ -6,11 +6,13 @@
         "description": "Choose where the daily quote comes from.",
         "data": {
           "source": "Source",
-          "language": "Language"
+          "language": "Language",
+          "cache_days": "Cache duration (days)"
         },
         "data_description": {
-          "source": "The built-in collection works offline. ZenQuotes fetches an English quote from zenquotes.io.",
-          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback when ZenQuotes is unreachable)."
+          "source": "Built-in works offline. ZenQuotes and BrainyQuote are English online sources: a batch of quotes is downloaded and cached, so the internet is only used when the cache is refreshed.",
+          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback while an online source is unreachable).",
+          "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources."
         }
       }
     },
@@ -24,11 +26,13 @@
         "title": "Quote of the Day options",
         "data": {
           "source": "Source",
-          "language": "Language"
+          "language": "Language",
+          "cache_days": "Cache duration (days)"
         },
         "data_description": {
-          "source": "The built-in collection works offline. ZenQuotes fetches an English quote from zenquotes.io.",
-          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback when ZenQuotes is unreachable)."
+          "source": "Built-in works offline. ZenQuotes and BrainyQuote are English online sources: a batch of quotes is downloaded and cached, so the internet is only used when the cache is refreshed.",
+          "language": "Which built-in quotes to use. Only applies to the built-in collection (and to the fallback while an online source is unreachable).",
+          "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources."
         }
       }
     }
@@ -37,7 +41,8 @@
     "source": {
       "options": {
         "builtin": "Built-in collection (offline)",
-        "zenquotes": "ZenQuotes (online, English)"
+        "zenquotes": "ZenQuotes (online, English)",
+        "brainyquote": "BrainyQuote (online, English)"
       }
     },
     "language": {
@@ -70,6 +75,15 @@
           },
           "fallback": {
             "name": "Fallback"
+          },
+          "entries": {
+            "name": "Entries"
+          },
+          "cached_quotes": {
+            "name": "Cached quotes"
+          },
+          "cache_updated": {
+            "name": "Cache updated"
           }
         }
       },

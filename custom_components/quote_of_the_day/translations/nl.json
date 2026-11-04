@@ -6,11 +6,13 @@
         "description": "Kies waar het citaat van de dag vandaan komt.",
         "data": {
           "source": "Bron",
-          "language": "Taal"
+          "language": "Taal",
+          "cache_days": "Cacheduur (dagen)"
         },
         "data_description": {
-          "source": "De ingebouwde verzameling werkt offline. ZenQuotes haalt een Engelstalig citaat op van zenquotes.io.",
-          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve wanneer ZenQuotes niet bereikbaar is)."
+          "source": "De ingebouwde verzameling werkt offline. ZenQuotes en BrainyQuote zijn Engelstalige online bronnen: een reeks citaten wordt in één keer opgehaald en bewaard, zodat internet alleen nodig is als de cache vernieuwd wordt.",
+          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve zolang een online bron niet bereikbaar is).",
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
         }
       }
     },
@@ -24,11 +26,13 @@
         "title": "Opties voor Quote of the Day",
         "data": {
           "source": "Bron",
-          "language": "Taal"
+          "language": "Taal",
+          "cache_days": "Cacheduur (dagen)"
         },
         "data_description": {
-          "source": "De ingebouwde verzameling werkt offline. ZenQuotes haalt een Engelstalig citaat op van zenquotes.io.",
-          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve wanneer ZenQuotes niet bereikbaar is)."
+          "source": "De ingebouwde verzameling werkt offline. ZenQuotes en BrainyQuote zijn Engelstalige online bronnen: een reeks citaten wordt in één keer opgehaald en bewaard, zodat internet alleen nodig is als de cache vernieuwd wordt.",
+          "language": "Welke ingebouwde citaten gebruikt worden. Geldt alleen voor de ingebouwde verzameling (en als reserve zolang een online bron niet bereikbaar is).",
+          "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen."
         }
       }
     }
@@ -37,7 +41,8 @@
     "source": {
       "options": {
         "builtin": "Ingebouwde verzameling (offline)",
-        "zenquotes": "ZenQuotes (online, Engels)"
+        "zenquotes": "ZenQuotes (online, Engels)",
+        "brainyquote": "BrainyQuote (online, Engels)"
       }
     },
     "language": {
@@ -70,6 +75,15 @@
           },
           "fallback": {
             "name": "Reserve"
+          },
+          "entries": {
+            "name": "Items"
+          },
+          "cached_quotes": {
+            "name": "Citaten in cache"
+          },
+          "cache_updated": {
+            "name": "Cache bijgewerkt"
           }
         }
       },
