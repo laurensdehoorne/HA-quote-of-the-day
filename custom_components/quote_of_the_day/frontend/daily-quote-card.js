@@ -6,19 +6,21 @@
  * by the integration itself; no resource needs to be added by hand.
  */
 
-const CARD_VERSION = "1.4.0";
+const CARD_VERSION = "1.5.0";
 
 const DEFAULTS = {
   quote_entity: "sensor.quote_of_the_day_quote",
   birthday_entity: "sensor.quote_of_the_day_birthday",
   fact_entity: "sensor.quote_of_the_day_on_this_day",
   button_entity: "button.quote_of_the_day_new_quote",
+  dislike_entity: "button.quote_of_the_day_dislike_quote",
   show_quote: true,
   show_reference: true,
   show_birthday: true,
   show_fact: true,
   show_images: true,
   show_new_quote_button: true,
+  show_dislike_button: true,
 };
 
 const TEXTS = {
@@ -31,6 +33,8 @@ const TEXTS = {
     born: "born {year}",
     yearsAgo: "{n} years ago",
     newQuote: "New quote",
+    dislike: "Not a good quote: never show it again",
+    confirmDislike: "Sure? Tap again",
     readMore: "Read more on Wikipedia",
     noData: "Not available",
     missing: "Entity not found: {entity}",
@@ -44,6 +48,8 @@ const TEXTS = {
     born: "geboren in {year}",
     yearsAgo: "{n} jaar geleden",
     newQuote: "Nieuw citaat",
+    dislike: "Geen goed citaat: nooit meer tonen",
+    confirmDislike: "Zeker? Tik nogmaals",
     readMore: "Lees meer op Wikipedia",
     noData: "Niet beschikbaar",
     missing: "Entiteit niet gevonden: {entity}",
@@ -74,6 +80,8 @@ class QuoteOfTheDayCard extends HTMLElement {
     this._hass = undefined;
     this._lastStates = undefined;
     this._busy = false;
+    this._confirmDislike = false;
+    this._confirmTimer = undefined;
   }
 
   static getStubConfig() {
@@ -93,6 +101,7 @@ class QuoteOfTheDayCard extends HTMLElement {
             { name: "show_fact", selector: { boolean: {} } },
             { name: "show_images", selector: { boolean: {} } },
             { name: "show_new_quote_button", selector: { boolean: {} } },
+            { name: "show_dislike_button", selector: { boolean: {} } },
           ],
         },
         {
@@ -104,6 +113,7 @@ class QuoteOfTheDayCard extends HTMLElement {
             { name: "birthday_entity", selector: { entity: { domain: "sensor" } } },
             { name: "fact_entity", selector: { entity: { domain: "sensor" } } },
             { name: "button_entity", selector: { entity: { domain: "button" } } },
+            { name: "dislike_entity", selector: { entity: { domain: "button" } } },
           ],
         },
       ],
@@ -115,6 +125,8 @@ class QuoteOfTheDayCard extends HTMLElement {
           show_fact: "Fact of the day",
           show_images: "Pictures",
           show_new_quote_button: "'New quote' button",
+          show_dislike_button: "'Not a good quote' button",
+          dislike_entity: "Dislike button",
           quote_entity: "Quote sensor",
           birthday_entity: "Birthday sensor",
           fact_entity: "Fact sensor",
@@ -162,7 +174,7 @@ class QuoteOfTheDayCard extends HTMLElement {
 
   _watched() {
     const c = this._config;
-    return [c.quote_entity, c.birthday_entity, c.fact_entity, c.button_entity];
+    return [c.quote_entity, c.birthday_entity, c.fact_entity, c.button_entity, c.dislike_entity];
   }
 
   _t(key, vars = {}) {
@@ -213,12 +225,22 @@ class QuoteOfTheDayCard extends HTMLElement {
             this._t("newQuote"),
           )}" ${this._busy ? "disabled" : ""}><ha-icon icon="mdi:refresh"></ha-icon></button>`
         : "";
+    const dislike =
+      c.show_dislike_button && this._hass.states[c.dislike_entity]
+        ? `<button class="dislike${this._confirmDislike ? " confirm" : ""}" title="${escapeHtml(
+            this._t(this._confirmDislike ? "confirmDislike" : "dislike"),
+          )}" aria-label="${escapeHtml(this._t(this._confirmDislike ? "confirmDislike" : "dislike"))}" ${
+            this._busy ? "disabled" : ""
+          }><ha-icon icon="${this._confirmDislike ? "mdi:thumb-down" : "mdi:thumb-down-outline"}"></ha-icon>${
+            this._confirmDislike ? `<span>${escapeHtml(this._t("confirmDislike"))}</span>` : ""
+          }</button>`
+        : "";
     const size = text.length > 180 ? "long" : text.length > 90 ? "medium" : "short";
     return `
       <section class="quote">
         <div class="header">
           <span class="label"><ha-icon icon="mdi:format-quote-open"></ha-icon>${escapeHtml(this._t("title"))}</span>
-          ${button}
+          <span class="actions">${dislike}${button}</span>
         </div>
         <blockquote class="${size}" lang="${escapeHtml(a.language || "")}">${escapeHtml(text)}</blockquote>
         <div class="author">
@@ -287,17 +309,33 @@ class QuoteOfTheDayCard extends HTMLElement {
       <style>${STYLES}</style>
       <ha-card>${parts.filter(Boolean).join('<div class="divider"></div>')}</ha-card>`;
     const button = this.shadowRoot.querySelector(".new-quote");
-    if (button) button.addEventListener("click", () => this._newQuote());
+    if (button) button.addEventListener("click", () => this._press(this._config.button_entity));
+    const dislike = this.shadowRoot.querySelector(".dislike");
+    if (dislike) dislike.addEventListener("click", () => this._dislike());
   }
 
-  async _newQuote() {
+  _dislike() {
+    // Two taps: disliking hides a quote for good, so avoid accidental taps.
+    clearTimeout(this._confirmTimer);
+    if (!this._confirmDislike) {
+      this._confirmDislike = true;
+      this._render();
+      this._confirmTimer = setTimeout(() => {
+        this._confirmDislike = false;
+        this._render();
+      }, 4000);
+      return;
+    }
+    this._confirmDislike = false;
+    this._press(this._config.dislike_entity);
+  }
+
+  async _press(entityId) {
     if (this._busy || !this._hass) return;
     this._busy = true;
     this._render();
     try {
-      await this._hass.callService("button", "press", {
-        entity_id: this._config.button_entity,
-      });
+      await this._hass.callService("button", "press", { entity_id: entityId });
     } finally {
       this._busy = false;
       this._lastStates = undefined;
@@ -308,25 +346,35 @@ class QuoteOfTheDayCard extends HTMLElement {
 
 const STYLES = `
   :host { display: block; }
-  ha-card { overflow: hidden; padding: 0; }
+  ha-card { overflow: hidden; padding: 0; container-type: inline-size; }
   section { padding: 16px; }
   .divider { height: 1px; background: var(--divider-color); margin: 0 16px; }
   .label {
+    min-width: 0;
     display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
     font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--secondary-text-color);
   }
   .label ha-icon { --mdc-icon-size: 16px; }
   .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .new-quote {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
-    background: transparent; color: var(--secondary-text-color);
+  .actions { display: inline-flex; align-items: center; gap: 2px; }
+  .actions button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-width: 36px; height: 36px; padding: 0 6px; border-radius: 18px; border: none;
+    cursor: pointer; background: transparent; color: var(--secondary-text-color);
+    font: inherit; font-size: 13px; white-space: nowrap;
   }
-  .new-quote:hover { background: var(--secondary-background-color); color: var(--primary-color); }
-  .new-quote:focus-visible { outline: 2px solid var(--primary-color); }
-  .new-quote[disabled] { opacity: 0.5; cursor: default; }
+  .actions button:hover { background: var(--secondary-background-color); color: var(--primary-color); }
+  .actions button:focus-visible { outline: 2px solid var(--primary-color); }
+  .actions button[disabled] { opacity: 0.5; cursor: default; }
   .new-quote[disabled] ha-icon { animation: spin 1s linear infinite; }
+  @container (max-width: 380px) {
+    .dislike.confirm span { display: none; }
+    .dislike.confirm, .dislike.confirm:hover { padding: 0 6px; }
+  }
+  .dislike.confirm, .dislike.confirm:hover {
+    padding: 0 12px; background: var(--error-color, #db4437); color: var(--text-primary-color, #fff);
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
   blockquote {
     margin: 12px 0 10px; padding: 0 0 0 14px;

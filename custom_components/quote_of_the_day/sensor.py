@@ -82,6 +82,7 @@ class QuoteSensor(QuoteEntity, SensorEntity):
             # Same shape as a Feedparser sensor, so feed-based Lovelace cards
             # (e.g. quote-of-the-day-card with `feed_attribute: entries`) work.
             ATTR_ENTRIES: [{"title": state.quote.author, "summary": state.quote.text}],
+            "disliked_quotes": len(coordinator.disliked),
         }
         if coordinator.online_sources:
             updated = coordinator.cache_updated
