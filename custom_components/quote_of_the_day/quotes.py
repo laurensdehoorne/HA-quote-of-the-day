@@ -594,6 +594,92 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Oscar Wilde",
         "The Picture of Dorian Gray (1891)",
     ),
+    _en(
+        "Far and away the best prize that life offers is the chance to work hard at "
+        "work worth doing.",
+        "Theodore Roosevelt",
+        "Labor Day address, Syracuse (1903)",
+    ),
+    _en(
+        "Success is to be measured not so much by the position that one has reached "
+        "in life as by the obstacles which he has overcome while trying to succeed.",
+        "Booker T. Washington",
+        "Up from Slavery (1901)",
+    ),
+    _en(
+        "He who has begun has half done. Dare to be wise; begin!",
+        "Horace",
+        "Epistles 1.2",
+    ),
+    _en("They can because they think they can.", "Virgil", "Aeneid 5.231"),
+    _en(
+        "Always bear in mind that your own resolution to succeed is more important "
+        "than any other one thing.",
+        "Abraham Lincoln",
+        "Letter to Isham Reavis (1855)",
+    ),
+    _en(
+        "Genius is one per cent inspiration, ninety-nine per cent perspiration.",
+        "Thomas Edison",
+        "Interview, Harper's Monthly (1932)",
+    ),
+    _en(
+        "Learning is not attained by chance, it must be sought for with ardor and "
+        "attended to with diligence.",
+        "Abigail Adams",
+        "Letter to John Quincy Adams (1780)",
+    ),
+    _en(
+        "Life is not easy for any of us. But what of that? We must have perseverance "
+        "and above all confidence in ourselves.",
+        "Marie Curie",
+        "Quoted in Madame Curie by Eve Curie (1937)",
+    ),
+    _en(
+        "To strive, to seek, to find, and not to yield.",
+        "Alfred, Lord Tennyson",
+        "Ulysses (1842)",
+    ),
+    _en(
+        "Our doubts are traitors, and make us lose the good we oft might win, by "
+        "fearing to attempt.",
+        "William Shakespeare",
+        "Measure for Measure, act 1, scene 4",
+    ),
+    _en(
+        "Although the world is full of suffering, it is full also of the overcoming "
+        "of it.",
+        "Helen Keller",
+        "Optimism (1903)",
+    ),
+    _en(
+        "As long as you live, keep learning how to live.",
+        "Seneca",
+        "Letters to Lucilius, 76",
+    ),
+    _en(
+        "Begin at once to live, and count each separate day as a separate life.",
+        "Seneca",
+        "Letters to Lucilius, 101",
+    ),
+    _en("It is difficulties that show what men are.", "Epictetus", "Discourses 1.24"),
+    _en(
+        "What would life be if we had no courage to attempt anything?",
+        "Vincent van Gogh",
+        "Letter to Theo van Gogh (1881)",
+    ),
+    _en(
+        "We choose to go to the moon in this decade and do the other things, not "
+        "because they are easy, but because they are hard.",
+        "John F. Kennedy",
+        "Address at Rice University (1962)",
+    ),
+    _en(
+        "The price of greatness is responsibility.",
+        "Winston Churchill",
+        "Speech at Harvard University (1943)",
+    ),
+    _en("Drops of water hollow out a stone.", "Ovid", "Epistulae ex Ponto 4.10.5"),
     # --- English: proverbs ---
     _en(
         "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -779,7 +865,39 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Henry Ford",
         "Mijn leven en werk (1922)",
     ),
+    _nl(
+        "Wie begonnen is, is half klaar. Durf wijs te zijn; begin!",
+        "Horatius",
+        "Epistulae 1.2",
+    ),
+    _nl("Ze kunnen het, omdat ze denken dat ze het kunnen.", "Vergilius", "Aeneis 5.231"),
+    _nl(
+        "Zolang je leeft, blijf leren hoe je moet leven.",
+        "Seneca",
+        "Brieven aan Lucilius, 76",
+    ),
+    _nl(
+        "Het zijn de moeilijkheden die tonen wat mensen waard zijn.",
+        "Epictetus",
+        "Diatriben 1.24",
+    ),
+    _nl(
+        "Het leven is voor niemand van ons makkelijk. Maar wat dan nog? We moeten "
+        "volharden en vooral vertrouwen hebben in onszelf.",
+        "Marie Curie",
+        "Geciteerd in Madame Curie door Eve Curie (1937)",
+    ),
+    _nl(
+        "We kiezen ervoor om in dit decennium naar de maan te gaan en de andere "
+        "dingen te doen, niet omdat ze makkelijk zijn, maar omdat ze moeilijk zijn.",
+        "John F. Kennedy",
+        "Toespraak aan de Rice University (1962)",
+    ),
     # --- Nederlands: spreekwoorden ---
+    _nl("Aanhouder wint.", "Spreekwoord"),
+    _nl("Oefening baart kunst.", "Spreekwoord"),
+    _nl("Waar een wil is, is een weg.", "Spreekwoord"),
+    _nl("Gestaag druppelen holt de steen uit.", "Spreekwoord"),
     _nl("Wie niet waagt, die niet wint.", "Spreekwoord"),
     _nl("Al doende leert men.", "Spreekwoord"),
     _nl("Rome is niet in één dag gebouwd.", "Spreekwoord"),

@@ -19,7 +19,7 @@ your dashboard, a morning notification or a TTS announcement.
   No quote repeats until the whole pool has been shown. If several sources
   return the same quote, it is only used once.
 - **Good quotes only.**
-  - The built-in collection (~150 quotes, including motivational and
+  - The built-in collection (~180 quotes, with a focus on motivational and
     personal growth ones) is curated: every quote has the right author and a
     `reference` to the book, speech or letter it comes from. Popular but
     misattributed quotes (the "Mandela", "Twain" and "Ford" quotes that
