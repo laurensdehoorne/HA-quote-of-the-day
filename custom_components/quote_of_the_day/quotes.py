@@ -438,6 +438,116 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Beautiful Boy (Darling Boy) (1980)",
     ),
     _en("Do. Or do not. There is no try.", "Yoda", "The Empire Strikes Back (1980)"),
+    # --- English: motivation & perseverance ---
+    _en(
+        "Ever tried. Ever failed. No matter. Try again. Fail again. Fail better.",
+        "Samuel Beckett",
+        "Worstward Ho (1983)",
+    ),
+    _en(
+        "You must do the thing you think you cannot do.",
+        "Eleanor Roosevelt",
+        "You Learn by Living (1960)",
+    ),
+    _en(
+        "Never give in, never, never, never, never, in nothing great or small, large "
+        "or petty, never give in except to convictions of honour and good sense.",
+        "Winston Churchill",
+        "Speech at Harrow School (1941)",
+    ),
+    _en(
+        "The credit belongs to the man who is actually in the arena, whose face is "
+        "marred by dust and sweat and blood.",
+        "Theodore Roosevelt",
+        "Citizenship in a Republic, speech at the Sorbonne (1910)",
+    ),
+    _en(
+        "If there is no struggle, there is no progress.",
+        "Frederick Douglass",
+        "West India Emancipation speech (1857)",
+    ),
+    _en(
+        "I learned that courage was not the absence of fear, but the triumph over it.",
+        "Nelson Mandela",
+        "Long Walk to Freedom (1994)",
+    ),
+    _en(
+        "After climbing a great hill, one only finds that there are many more hills "
+        "to climb.",
+        "Nelson Mandela",
+        "Long Walk to Freedom (1994)",
+    ),
+    _en(
+        "Optimism is the faith that leads to achievement; nothing can be done "
+        "without hope.",
+        "Helen Keller",
+        "Optimism (1903)",
+    ),
+    _en(
+        "How wonderful it is that nobody need wait a single moment before beginning "
+        "to improve the world.",
+        "Anne Frank",
+        "Give!, Tales from the Secret Annex (1944)",
+    ),
+    _en(
+        "It is not because things are difficult that we do not dare; it is because "
+        "we do not dare that they are difficult.",
+        "Seneca",
+        "Letters to Lucilius, 104",
+    ),
+    _en(
+        "First say to yourself what you would be; and then do what you have to do.",
+        "Epictetus",
+        "Discourses 3.23",
+    ),
+    _en(
+        "The impediment to action advances action. What stands in the way becomes "
+        "the way.",
+        "Marcus Aurelius",
+        "Meditations 5.20",
+    ),
+    _en(
+        "Great things are not done by impulse, but by a series of small things "
+        "brought together.",
+        "Vincent van Gogh",
+        "Letter to Theo van Gogh (1882)",
+    ),
+    _en("The best way out is always through.", "Robert Frost", "A Servant to Servants (1914)"),
+    _en(
+        "I'm not afraid of storms, for I'm learning how to sail my ship.",
+        "Louisa May Alcott",
+        "Little Women (1868)",
+    ),
+    _en(
+        "Hope is a good thing, maybe the best of things, and no good thing ever dies.",
+        "Stephen King",
+        "Rita Hayworth and Shawshank Redemption (1982)",
+    ),
+    _en(
+        "Ah, but a man's reach should exceed his grasp, or what's a heaven for?",
+        "Robert Browning",
+        "Andrea del Sarto (1855)",
+    ),
+    _en(
+        "Tell me, what is it you plan to do with your one wild and precious life?",
+        "Mary Oliver",
+        "The Summer Day (1990)",
+    ),
+    _en(
+        "Problems worthy of attack prove their worth by hitting back.",
+        "Piet Hein",
+        "Grooks (1966)",
+    ),
+    _en(
+        "Well done is better than well said.",
+        "Benjamin Franklin",
+        "Poor Richard's Almanack (1737)",
+    ),
+    _en(
+        "Your time is limited, so don't waste it living someone else's life.",
+        "Steve Jobs",
+        "Stanford commencement address (2005)",
+    ),
     # --- English: proverbs ---
     _en(
         "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -557,6 +667,49 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Het leven is wat je overkomt terwijl je druk bezig bent andere plannen te maken.",
         "John Lennon",
         "Beautiful Boy (Darling Boy) (1980)",
+    ),
+    _nl(
+        "Het is niet omdat de dingen moeilijk zijn dat we niet durven; het is omdat "
+        "we niet durven dat ze moeilijk zijn.",
+        "Seneca",
+        "Brieven aan Lucilius, 104",
+    ),
+    _nl(
+        "Wat het handelen belemmert, brengt het handelen vooruit. Wat in de weg "
+        "staat, wordt de weg.",
+        "Marcus Aurelius",
+        "Overpeinzingen 5.20",
+    ),
+    _nl(
+        "Zeg eerst tegen jezelf wat je wilt zijn, en doe dan wat je moet doen.",
+        "Epictetus",
+        "Diatriben 3.23",
+    ),
+    _nl(
+        "Ooit geprobeerd. Ooit gefaald. Geeft niet. Probeer opnieuw. Faal opnieuw. "
+        "Faal beter.",
+        "Samuel Beckett",
+        "Worstward Ho (1983)",
+    ),
+    _nl(
+        "Je moet het ding doen waarvan je denkt dat je het niet kunt.",
+        "Eleanor Roosevelt",
+        "You Learn by Living (1960)",
+    ),
+    _nl(
+        "Ik leerde dat moed niet de afwezigheid van angst is, maar de overwinning erop.",
+        "Nelson Mandela",
+        "De lange weg naar de vrijheid (1994)",
+    ),
+    _nl(
+        "Zonder strijd is er geen vooruitgang.",
+        "Frederick Douglass",
+        "Toespraak over de emancipatie in West-Indië (1857)",
+    ),
+    _nl(
+        "Ik ben niet bang voor stormen, want ik leer mijn schip te besturen.",
+        "Louisa May Alcott",
+        "Onder moeders vleugels (1868)",
     ),
     # --- Nederlands: spreekwoorden ---
     _nl("Wie niet waagt, die niet wint.", "Spreekwoord"),
