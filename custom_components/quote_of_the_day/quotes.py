@@ -548,6 +548,42 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Steve Jobs",
         "Stanford commencement address (2005)",
     ),
+    # --- English: personal growth ---
+    _en(
+        "Change is the law of life. And those who look only to the past or the "
+        "present are certain to miss the future.",
+        "John F. Kennedy",
+        "Address at the Paulskirche, Frankfurt (1963)",
+    ),
+    _en(
+        "Education is our passport to the future, for tomorrow belongs only to the "
+        "people who prepare for it today.",
+        "Malcolm X",
+        "Founding rally of the Organization of Afro-American Unity (1964)",
+    ),
+    _en(
+        "One child, one teacher, one book and one pen can change the world.",
+        "Malala Yousafzai",
+        "Speech at the United Nations (2013)",
+    ),
+    _en(
+        "You cannot uneducate the person who has learned to read.",
+        "César Chávez",
+        "Address to the Commonwealth Club of California (1984)",
+    ),
+    _en(
+        "When you get into a tight place, and everything goes against you till it "
+        "seems as if you couldn't hold on a minute longer, never give up then, for "
+        "that's just the place and time that the tide'll turn.",
+        "Harriet Beecher Stowe",
+        "Oldtown Folks (1869)",
+    ),
+    _en(
+        "Someone's sitting in the shade today because someone planted a tree a long "
+        "time ago.",
+        "Warren Buffett",
+        "Quoted in Of Permanent Value (1991 statement)",
+    ),
     # --- English: proverbs ---
     _en(
         "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -710,6 +746,23 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Ik ben niet bang voor stormen, want ik leer mijn schip te besturen.",
         "Louisa May Alcott",
         "Onder moeders vleugels (1868)",
+    ),
+    _nl(
+        "Verandering is de wet van het leven. Wie alleen naar het verleden of het "
+        "heden kijkt, zal zeker de toekomst missen.",
+        "John F. Kennedy",
+        "Toespraak in de Paulskirche, Frankfurt (1963)",
+    ),
+    _nl(
+        "Onderwijs is ons paspoort naar de toekomst, want de dag van morgen is van "
+        "wie zich er vandaag op voorbereidt.",
+        "Malcolm X",
+        "Oprichtingsbijeenkomst van de Organization of Afro-American Unity (1964)",
+    ),
+    _nl(
+        "Eén kind, één leraar, één boek en één pen kunnen de wereld veranderen.",
+        "Malala Yousafzai",
+        "Toespraak voor de Verenigde Naties (2013)",
     ),
     # --- Nederlands: spreekwoorden ---
     _nl("Wie niet waagt, die niet wint.", "Spreekwoord"),
