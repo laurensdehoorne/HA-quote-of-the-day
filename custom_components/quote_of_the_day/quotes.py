@@ -584,6 +584,16 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Warren Buffett",
         "Quoted in Of Permanent Value (1991 statement)",
     ),
+    _en(
+        "Failure is only the opportunity more intelligently to begin again.",
+        "Henry Ford",
+        "My Life and Work (1922)",
+    ),
+    _en(
+        "I adore simple pleasures. They are the last refuge of the complex.",
+        "Oscar Wilde",
+        "The Picture of Dorian Gray (1891)",
+    ),
     # --- English: proverbs ---
     _en(
         "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -763,6 +773,11 @@ BUILTIN_QUOTES: tuple[Quote, ...] = (
         "Eén kind, één leraar, één boek en één pen kunnen de wereld veranderen.",
         "Malala Yousafzai",
         "Toespraak voor de Verenigde Naties (2013)",
+    ),
+    _nl(
+        "Falen is slechts de kans om opnieuw te beginnen, en nu verstandiger.",
+        "Henry Ford",
+        "Mijn leven en werk (1922)",
     ),
     # --- Nederlands: spreekwoorden ---
     _nl("Wie niet waagt, die niet wint.", "Spreekwoord"),
