@@ -1,4 +1,4 @@
-"""Tests for the dashboard card in the README (built-in cards only)."""
+"""Tests for the dashboard card in the README made of built-in cards."""
 
 from __future__ import annotations
 
@@ -25,8 +25,8 @@ BUTTONS = {
 
 
 def _card() -> dict:
-    """The first YAML block of the "Dashboard card" section."""
-    section = README.read_text(encoding="utf-8").split("## Dashboard card", 1)[1]
+    """The first YAML block of the "Without the custom card" section."""
+    section = README.read_text(encoding="utf-8").split("### Without the custom card", 1)[1]
     block = re.search(r"```yaml\n(.*?)```", section, re.DOTALL)
     assert block
     return yaml.safe_load(block.group(1))

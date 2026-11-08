@@ -6,15 +6,18 @@ import logging
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.helpers.start import async_at_started
+from homeassistant.helpers.typing import ConfigType
 
 from .ai_coordinator import AiQuoteCoordinator, ai_task_entity
+from .card import async_register_card, async_unregister_card
 from .const import (
     CONF_ON_THIS_DAY,
     CONF_SOURCE,
     CONF_SOURCES,
     DEFAULT_ON_THIS_DAY,
+    DOMAIN,
     SOURCE_BUILTIN,
 )
 from .coordinator import QuoteCoordinator
@@ -24,6 +27,14 @@ from .onthisday_coordinator import OnThisDayCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BUTTON, Platform.SENSOR]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Serve the dashboard card and load it in the frontend."""
+    await async_register_card(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> bool:
@@ -82,6 +93,11 @@ def _async_remove_unused_entities(
 async def async_unload_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> None:
+    """Remove the card's dashboard resource when the integration is removed."""
+    await async_unregister_card(hass)
 
 
 async def _async_options_updated(hass: HomeAssistant, entry: QuoteConfigEntry) -> None:
