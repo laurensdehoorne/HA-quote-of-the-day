@@ -14,6 +14,7 @@ CONF_ON_THIS_DAY: Final = "on_this_day"
 CONF_THEME: Final = "theme"
 CONF_AI_TASK_ENTITY: Final = "ai_task_entity"
 CONF_AI_INSTRUCTIONS: Final = "ai_instructions"
+CONF_AI_LANGUAGE: Final = "ai_language"
 
 SOURCE_BUILTIN: Final = "builtin"
 SOURCE_ZENQUOTES: Final = "zenquotes"
@@ -30,6 +31,10 @@ LANGUAGES: Final = [LANGUAGE_ALL, LANGUAGE_EN, LANGUAGE_NL]
 THEME_ALL: Final = "all"
 THEME_MOTIVATIONAL: Final = "motivational"
 THEMES: Final = [THEME_MOTIVATIONAL, THEME_ALL]
+
+# Language of the AI quote: follow the language setting, or a fixed one.
+AI_LANGUAGE_AUTO: Final = "auto"
+AI_LANGUAGES: Final = [AI_LANGUAGE_AUTO, LANGUAGE_NL, LANGUAGE_EN]
 
 DEFAULT_SOURCES: Final = list(SOURCES)
 DEFAULT_LANGUAGE: Final = LANGUAGE_ALL

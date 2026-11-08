@@ -111,6 +111,27 @@ async def test_ai_quote_daily(hass: HomeAssistant, freezer: FrozenDateTimeFactor
     assert hass.states.get(AI_SENSOR).state.endswith("number 3.")
 
 
+@pytest.mark.parametrize(
+    ("language", "ai_language", "expected"),
+    [
+        ("nl", "auto", "Dutch"),
+        ("en", "auto", "English"),
+        ("all", "auto", "English"),  # Home Assistant's language (en in tests)
+        ("all", "nl", "Dutch"),
+        ("en", "nl", "Dutch"),
+        ("nl", "en", "English"),
+    ],
+)
+async def test_ai_quote_language(
+    hass: HomeAssistant, language: str, ai_language: str, expected: str
+) -> None:
+    ai = FakeAiTask(hass)
+    await _setup(hass, language=language, ai_language=ai_language)
+    assert f"Write it in {expected}." in ai.calls[0]["instructions"]
+    lang = {"Dutch": "nl", "English": "en"}[expected]
+    assert hass.states.get(AI_SENSOR).attributes["language"] == lang
+
+
 async def test_ai_failure(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
     freezer.move_to("2026-11-04 12:00:00+00:00")
     ai = FakeAiTask(hass)

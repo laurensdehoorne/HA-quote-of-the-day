@@ -28,7 +28,10 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    AI_LANGUAGE_AUTO,
+    AI_LANGUAGES,
     CONF_AI_INSTRUCTIONS,
+    CONF_AI_LANGUAGE,
     CONF_AI_TASK_ENTITY,
     CONF_CACHE_DAYS,
     CONF_LANGUAGE,
@@ -105,6 +108,15 @@ def _schema(values: dict[str, Any]) -> vol.Schema:
                 CONF_AI_TASK_ENTITY,
                 description={"suggested_value": values.get(CONF_AI_TASK_ENTITY) or None},
             ): EntitySelector(EntitySelectorConfig(domain="ai_task")),
+            vol.Required(
+                CONF_AI_LANGUAGE, default=values.get(CONF_AI_LANGUAGE, AI_LANGUAGE_AUTO)
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=AI_LANGUAGES,
+                    translation_key=CONF_AI_LANGUAGE,
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
             vol.Optional(
                 CONF_AI_INSTRUCTIONS,
                 description={"suggested_value": values.get(CONF_AI_INSTRUCTIONS) or None},

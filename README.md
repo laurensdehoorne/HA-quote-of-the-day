@@ -29,6 +29,8 @@ Optionally, an AI writes you a fresh motivational quote of its own as well.
   with a new motivational quote written by AI every day, in your language.
   - The AI writes its own sentence and is told not to quote or name anyone,
     so it is never passed off as a quote by a real person.
+  - Choose its language: *Automatic* (follows the language setting, or
+    Home Assistant's language with "All languages"), Dutch or English.
   - Add your own wishes, e.g. "about running", "for a team of nurses" or
     "with a touch of humour".
   - Each day has a different angle (starting, discipline, failing and trying
@@ -115,14 +117,66 @@ with "…" in the state, the full text is always in the `quote` attribute.
 
 ## Dashboard card
 
-The card below only uses cards that are built into Home Assistant (a
-Markdown card and buttons), so there is nothing to install and nothing for
-the browser to load: it works in every browser, on old tablets and in the
-Companion app.
+The integration ships its own card, **Quote of the Day**
+(`custom:daily-quote-card`), with a visual editor. It is compact: the quote
+with author and source on one line, the AI quote (when set up) on one line
+with a small robot icon, and the famous birthday and the fact of the day as
+short rows with a small photo (tap one to read more on Wikipedia). Small
+buttons for a new quote, "not a good quote" (tap twice to confirm) and a new
+AI quote. It follows your theme (light/dark) and your language (English or
+Dutch).
 
-It shows the quote with author and source, the AI quote (when set up), the
-famous birthday with photo and the fact of the day, with buttons for a new
-quote, "not a good quote" (asks for confirmation) and a new AI quote.
+**Edit dashboard → Add card**, search for **Quote of the Day** and set it up
+in the visual editor. Or in YAML:
+
+```yaml
+type: custom:daily-quote-card
+```
+
+The card is loaded automatically: there is no resource to add yourself. It
+is loaded in two ways, so it also shows up when one of them fails: as part
+of the Home Assistant page, and as a dashboard resource that is fetched each
+time a dashboard is opened (dashboards managed in the UI). The URL changes
+with every new version of the card, so browsers never keep an old copy.
+
+**"Configuration error" or "Custom element doesn't exist"?** The browser has
+not loaded the card yet. Restart Home Assistant after installing or updating
+the integration, then reload the page (Ctrl+F5). In the Companion app:
+*Settings → Companion app → Debugging → Reset frontend cache*.
+
+All options are optional and can also be set in the visual editor:
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `show_quote` | `true` | Show the quote. |
+| `show_reference` | `true` | Show where the quote comes from. |
+| `show_ai_quote` | `true` | Show the AI quote, when it is set up. |
+| `show_birthday` | `true` | Show the famous birthday. |
+| `show_fact` | `true` | Show the fact of the day. |
+| `show_images` | `true` | Show the pictures from Wikipedia. |
+| `show_new_quote_button` | `true` | Show the "new quote" button. |
+| `show_dislike_button` | `true` | Show the "not a good quote" button. |
+| `quote_entity` | `sensor.quote_of_the_day_quote` | Quote sensor. |
+| `ai_quote_entity` | `sensor.quote_of_the_day_ai_quote` | AI quote sensor. |
+| `birthday_entity` | `sensor.quote_of_the_day_birthday` | Birthday sensor. |
+| `fact_entity` | `sensor.quote_of_the_day_on_this_day` | Fact sensor. |
+| `button_entity` | `button.quote_of_the_day_new_quote` | New quote button. |
+| `dislike_entity` | `button.quote_of_the_day_dislike_quote` | Dislike button. |
+| `ai_button_entity` | `button.quote_of_the_day_new_ai_quote` | New AI quote button. |
+
+Example, only the quote:
+
+```yaml
+type: custom:daily-quote-card
+show_birthday: false
+show_fact: false
+```
+
+### Without the custom card
+
+The same information with cards that are built into Home Assistant (a
+Markdown card and buttons): nothing for the browser to load. Use it when
+the custom card can't be loaded, e.g. on a very old tablet.
 
 **Edit dashboard → Add card → Manual**, and paste:
 

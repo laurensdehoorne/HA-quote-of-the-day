@@ -11,6 +11,7 @@
           "cache_days": "Cacheduur (dagen)",
           "on_this_day": "Verjaardag en weetje van de dag",
           "ai_task_entity": "AI-citaat (AI Task-entiteit)",
+          "ai_language": "Taal van het AI-citaat",
           "ai_instructions": "Wensen voor het AI-citaat"
         },
         "data_description": {
@@ -20,6 +21,7 @@
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
           "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia.",
           "ai_task_entity": "Optioneel. Kies een AI Task-entiteit (bv. OpenAI, Google Gemini, Anthropic of Ollama) voor een sensor met elke dag een nieuw motiverend citaat, geschreven door AI. Vereist Home Assistant 2025.8 of nieuwer. Laat leeg om het uit te zetten.",
+          "ai_language": "Taal van het AI-citaat. 'Automatisch' volgt de taal hierboven, of de taal van Home Assistant bij 'Alle talen'.",
           "ai_instructions": "Optioneel. Extra wensen voor de AI, bv. 'over hardlopen', 'voor een team verpleegkundigen' of 'met een vleugje humor'."
         }
       }
@@ -39,6 +41,7 @@
           "cache_days": "Cacheduur (dagen)",
           "on_this_day": "Verjaardag en weetje van de dag",
           "ai_task_entity": "AI-citaat (AI Task-entiteit)",
+          "ai_language": "Taal van het AI-citaat",
           "ai_instructions": "Wensen voor het AI-citaat"
         },
         "data_description": {
@@ -48,6 +51,7 @@
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
           "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia.",
           "ai_task_entity": "Optioneel. Kies een AI Task-entiteit (bv. OpenAI, Google Gemini, Anthropic of Ollama) voor een sensor met elke dag een nieuw motiverend citaat, geschreven door AI. Vereist Home Assistant 2025.8 of nieuwer. Laat leeg om het uit te zetten.",
+          "ai_language": "Taal van het AI-citaat. 'Automatisch' volgt de taal hierboven, of de taal van Home Assistant bij 'Alle talen'.",
           "ai_instructions": "Optioneel. Extra wensen voor de AI, bv. 'over hardlopen', 'voor een team verpleegkundigen' of 'met een vleugje humor'."
         }
       }
@@ -73,6 +77,13 @@
       "options": {
         "motivational": "Motiverend",
         "all": "Alle citaten"
+      }
+    },
+    "ai_language": {
+      "options": {
+        "auto": "Automatisch",
+        "nl": "Nederlands",
+        "en": "Engels"
       }
     }
   },

@@ -15,7 +15,9 @@ from homeassistant.util import dt as dt_util
 
 from .ai_quote import AiQuote, AiQuoteError, async_generate, build_instructions
 from .const import (
+    AI_LANGUAGE_AUTO,
     CONF_AI_INSTRUCTIONS,
+    CONF_AI_LANGUAGE,
     CONF_AI_TASK_ENTITY,
     CONF_LANGUAGE,
     DEFAULT_LANGUAGE,
@@ -74,7 +76,10 @@ class AiQuoteCoordinator(DataUpdateCoordinator[AiQuote | None]):
 
     @property
     def language(self) -> str:
-        """Language of the quote: the chosen one, or Home Assistant's."""
+        """Language of the quote: its own setting, the quote language or HA's."""
+        language = self._option(CONF_AI_LANGUAGE, AI_LANGUAGE_AUTO) or AI_LANGUAGE_AUTO
+        if language != AI_LANGUAGE_AUTO:
+            return language
         language = self._option(CONF_LANGUAGE, DEFAULT_LANGUAGE)
         if language == LANGUAGE_ALL:
             language = (self.hass.config.language or "en").split("-")[0]
