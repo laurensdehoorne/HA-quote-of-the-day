@@ -207,12 +207,13 @@ class QuoteOfTheDayCard extends HTMLElement {
   }
 
   getCardSize() {
-    let size = 1;
-    if (this._config.show_quote) size += 3;
-    if (this._config.show_ai_quote && this._state(this._config.ai_quote_entity)) size += 2;
-    if (this._config.show_birthday) size += 2;
-    if (this._config.show_fact) size += 2;
-    return size;
+    const c = this._config;
+    let size = 0;
+    if (c.show_quote) size += 2;
+    if (c.show_ai_quote && this._state(c.ai_quote_entity)) size += 1;
+    if (c.show_birthday) size += 1;
+    if (c.show_fact) size += 1;
+    return Math.max(size, 1);
   }
 
   getGridOptions() {
@@ -244,65 +245,61 @@ class QuoteOfTheDayCard extends HTMLElement {
     return state;
   }
 
-  _image(state) {
-    if (!this._config.show_images) return "";
-    const url = safeUrl(state.attributes.entity_picture);
+  _image(state, fallbackIcon, round) {
+    const url = this._config.show_images ? safeUrl(state.attributes.entity_picture) : "";
     return url
-      ? `<img class="photo" src="${escapeHtml(url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
-      : "";
+      ? `<img class="thumb${round ? " round" : ""}" src="${escapeHtml(url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+      : `<span class="thumb icon"><ha-icon icon="${fallbackIcon}"></ha-icon></span>`;
   }
 
-  _link(url, label) {
-    const href = safeUrl(url);
-    return href
-      ? `<a class="link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} <ha-icon icon="mdi:open-in-new"></ha-icon></a>`
-      : "";
+  _button(cls, icon, label) {
+    return `<button class="${cls}" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}" ${
+      this._busy ? "disabled" : ""
+    }><ha-icon icon="${icon}"></ha-icon></button>`;
   }
 
   _renderQuote() {
     const c = this._config;
     const state = this._state(c.quote_entity);
     if (!state) {
-      return `<section class="quote"><p class="empty">${escapeHtml(
-        this._hass?.states?.[c.quote_entity]
+      return `<p class="empty">${escapeHtml(
+        this._hass.states[c.quote_entity]
           ? this._t("noData")
           : this._t("missing", { entity: c.quote_entity }),
-      )}</p></section>`;
+      )}</p>`;
     }
     const a = state.attributes;
     const text = a.quote || state.state;
-    const reference = c.show_reference && a.reference
-      ? `<span class="reference">${escapeHtml(a.reference)}</span>`
-      : "";
-    const button =
-      c.show_new_quote_button && this._hass.states[c.button_entity]
-        ? `<button class="new-quote" title="${escapeHtml(this._t("newQuote"))}" aria-label="${escapeHtml(
-            this._t("newQuote"),
-          )}" ${this._busy ? "disabled" : ""}><ha-icon icon="mdi:refresh"></ha-icon></button>`
-        : "";
-    const dislike =
+    const confirm = this._confirmDislike;
+    const actions = [
       c.show_dislike_button && this._hass.states[c.dislike_entity]
-        ? `<button class="dislike${this._confirmDislike ? " confirm" : ""}" title="${escapeHtml(
-            this._t(this._confirmDislike ? "confirmDislike" : "dislike"),
-          )}" aria-label="${escapeHtml(this._t(this._confirmDislike ? "confirmDislike" : "dislike"))}" ${
-            this._busy ? "disabled" : ""
-          }><ha-icon icon="${this._confirmDislike ? "mdi:thumb-down" : "mdi:thumb-down-outline"}"></ha-icon>${
-            this._confirmDislike ? `<span>${escapeHtml(this._t("confirmDislike"))}</span>` : ""
-          }</button>`
-        : "";
+        ? this._button(
+            `dislike${confirm ? " confirm" : ""}`,
+            confirm ? "mdi:thumb-down" : "mdi:thumb-down-outline",
+            this._t(confirm ? "confirmDislike" : "dislike"),
+          )
+        : "",
+      c.show_new_quote_button && this._hass.states[c.button_entity]
+        ? this._button("new-quote", "mdi:refresh", this._t("newQuote"))
+        : "",
+    ].join("");
+    const by = [
+      a.author ? `<span class="name">&mdash; ${escapeHtml(a.author)}</span>` : "",
+      c.show_reference && a.reference
+        ? `<span class="reference">${escapeHtml(a.reference)}</span>`
+        : "",
+    ]
+      .filter(Boolean)
+      .join('<span class="dot"> &middot; </span>');
     const size = text.length > 180 ? "long" : text.length > 90 ? "medium" : "short";
     return `
-      <section class="quote">
-        <div class="header">
-          <span class="label"><ha-icon icon="mdi:format-quote-open"></ha-icon>${escapeHtml(this._t("title"))}</span>
-          <span class="actions">${dislike}${button}</span>
-        </div>
-        <blockquote class="${size}" lang="${escapeHtml(a.language || "")}">${escapeHtml(text)}</blockquote>
-        <div class="author">
-          ${a.author ? `<span class="name">&mdash; ${escapeHtml(a.author)}</span>` : ""}
-          ${reference}
-        </div>
-      </section>`;
+      <div class="quote">
+        <blockquote class="${size}" lang="${escapeHtml(a.language || "")}" title="${escapeHtml(
+          this._t("title"),
+        )}">${escapeHtml(text)}</blockquote>
+        ${actions ? `<span class="actions">${actions}</span>` : ""}
+      </div>
+      ${by ? `<div class="by">${by}</div>` : ""}`;
   }
 
   _renderAiQuote() {
@@ -311,45 +308,51 @@ class QuoteOfTheDayCard extends HTMLElement {
     const state = this._state(c.ai_quote_entity);
     if (!state) return "";
     const a = state.attributes;
-    const text = a.quote || state.state;
     const button = this._hass.states[c.ai_button_entity]
-      ? `<button class="new-ai-quote" title="${escapeHtml(this._t("newAiQuote"))}" aria-label="${escapeHtml(
-          this._t("newAiQuote"),
-        )}" ${this._busy ? "disabled" : ""}><ha-icon icon="mdi:refresh"></ha-icon></button>`
+      ? this._button("new-ai-quote", "mdi:refresh", this._t("newAiQuote"))
       : "";
     return `
-      <section class="ai-quote">
-        <div class="header">
-          <span class="label"><ha-icon icon="mdi:robot-happy-outline"></ha-icon>${escapeHtml(this._t("aiQuote"))}
-            <span class="chip ai">${escapeHtml(this._t("aiBadge"))}</span>
-          </span>
-          <span class="actions">${button}</span>
-        </div>
-        <p class="ai-text" lang="${escapeHtml(a.language || "")}">${escapeHtml(text)}</p>
-      </section>`;
+      <div class="ai" title="${escapeHtml(this._t("aiBadge"))}">
+        <ha-icon class="ai-icon" icon="mdi:robot-happy-outline"></ha-icon>
+        <p class="ai-text" lang="${escapeHtml(a.language || "")}">${escapeHtml(a.quote || state.state)}</p>
+        ${button ? `<span class="actions">${button}</span>` : ""}
+      </div>`;
+  }
+
+  _row(state, icon, round, line, meta, url) {
+    const href = safeUrl(url);
+    const tag = href ? "a" : "div";
+    const attrs = href
+      ? ` href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
+          this._t("readMore"),
+        )}"`
+      : "";
+    return `
+      <${tag} class="row"${attrs}>
+        ${this._image(state, icon, round)}
+        <span class="body">
+          <span class="line">${line}</span>
+          <span class="meta">${meta}</span>
+        </span>
+      </${tag}>`;
   }
 
   _renderBirthday() {
     const state = this._state(this._config.birthday_entity);
     if (!state) return "";
     const a = state.attributes;
+    const line = `<b>${escapeHtml(a.name || state.state)}</b>${
+      a.description ? `, ${escapeHtml(a.description)}` : ""
+    }`;
     const meta = [
+      this._t("birthday"),
       a.born ? this._t("born", { year: a.born }) : "",
       a.years_ago ? this._t("yearsAgo", { n: a.years_ago }) : "",
     ]
       .filter(Boolean)
-      .join(" \u00b7 ");
-    return `
-      <section class="item birthday">
-        ${this._image(state) || `<div class="icon-box"><ha-icon icon="mdi:cake-variant"></ha-icon></div>`}
-        <div class="body">
-          <span class="label">${escapeHtml(this._t("birthday"))}</span>
-          <span class="title">${escapeHtml(a.name || state.state)}</span>
-          ${a.description ? `<span class="text">${escapeHtml(a.description)}</span>` : ""}
-          ${meta ? `<span class="meta">${escapeHtml(meta)}</span>` : ""}
-          ${this._link(a.url, this._t("readMore"))}
-        </div>
-      </section>`;
+      .map(escapeHtml)
+      .join(" &middot; ");
+    return this._row(state, "mdi:cake-variant", true, line, meta, a.url);
   }
 
   _renderFact() {
@@ -357,43 +360,44 @@ class QuoteOfTheDayCard extends HTMLElement {
     if (!state) return "";
     const a = state.attributes;
     const category = FACT_ICONS[a.category] ? a.category : "history";
-    const icon = FACT_ICONS[category];
-    return `
-      <section class="item fact">
-        ${this._image(state) || `<div class="icon-box"><ha-icon icon="${icon}"></ha-icon></div>`}
-        <div class="body">
-          <span class="label">${escapeHtml(this._t("fact"))}
-            <span class="chip ${category}"><ha-icon icon="${icon}"></ha-icon>${escapeHtml(
-              this._t(category),
-            )}</span>
-          </span>
-          <span class="title">${escapeHtml(a.year ?? "")}</span>
-          <span class="text">${escapeHtml(a.text || state.state)}</span>
-          ${a.years_ago ? `<span class="meta">${escapeHtml(this._t("yearsAgo", { n: a.years_ago }))}</span>` : ""}
-          ${this._link(a.url, this._t("readMore"))}
-        </div>
-      </section>`;
+    const line = `<b>${escapeHtml(a.year ?? "")}</b> ${escapeHtml(a.text || state.state)}`;
+    const meta = [
+      `<span class="tag ${category}">${escapeHtml(this._t(category))}</span>`,
+      escapeHtml(this._t("fact")),
+      a.years_ago ? escapeHtml(this._t("yearsAgo", { n: a.years_ago })) : "",
+    ]
+      .filter(Boolean)
+      .join(" &middot; ");
+    return this._row(state, FACT_ICONS[category], false, line, meta, a.url);
   }
 
   _render() {
     if (!this.shadowRoot) return;
     const c = this._config;
-    const parts = [];
+    let top = "";
+    let rows = "";
     if (this._hass) {
-      if (c.show_quote) parts.push(this._renderQuote());
-      if (c.show_ai_quote) parts.push(this._renderAiQuote());
-      if (c.show_birthday) parts.push(this._renderBirthday());
-      if (c.show_fact) parts.push(this._renderFact());
+      top = [c.show_quote ? this._renderQuote() : "", c.show_ai_quote ? this._renderAiQuote() : ""]
+        .filter(Boolean)
+        .join("");
+      rows = [c.show_birthday ? this._renderBirthday() : "", c.show_fact ? this._renderFact() : ""]
+        .filter(Boolean)
+        .join("");
     }
     this.shadowRoot.innerHTML = `
       <style>${STYLES}</style>
-      <ha-card>${parts.filter(Boolean).join('<div class="divider"></div>')}</ha-card>`;
-    const button = this.shadowRoot.querySelector(".new-quote");
-    if (button) button.addEventListener("click", () => this._press(this._config.button_entity));
-    const aiButton = this.shadowRoot.querySelector(".new-ai-quote");
-    if (aiButton) aiButton.addEventListener("click", () => this._press(this._config.ai_button_entity));
-    const dislike = this.shadowRoot.querySelector(".dislike");
-    if (dislike) dislike.addEventListener("click", () => this._dislike());
+      <ha-card>
+        ${top ? `<section class="top">${top}</section>` : ""}
+        ${top && rows ? '<div class="divider"></div>' : ""}
+        ${rows ? `<section class="rows">${rows}</section>` : ""}
+      </ha-card>`;
+    const on = (selector, handler) => {
+      const element = this.shadowRoot.querySelector(selector);
+      if (element) element.addEventListener("click", handler);
+    };
+    on(".new-quote", () => this._press(this._config.button_entity));
+    on(".new-ai-quote", () => this._press(this._config.ai_button_entity));
+    on(".dislike", () => this._dislike());
   }
 
   _dislike() {
@@ -428,80 +432,73 @@ class QuoteOfTheDayCard extends HTMLElement {
 
 const STYLES = `
   :host { display: block; }
-  ha-card { overflow: hidden; padding: 0; container-type: inline-size; }
-  section { padding: 16px; }
-  .divider { height: 1px; background: var(--divider-color); margin: 0 16px; }
-  .label {
-    min-width: 0;
-    display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--secondary-text-color);
+  ha-card { overflow: hidden; padding: 0; }
+  section { padding: 10px 12px; }
+  .divider { height: 1px; background: var(--divider-color); margin: 0 12px; }
+  .quote, .ai { display: flex; align-items: flex-start; gap: 6px; }
+  blockquote {
+    flex: 1; min-width: 0; margin: 0; padding: 0 0 0 10px;
+    border-left: 3px solid var(--primary-color);
+    color: var(--primary-text-color); line-height: 1.35; font-style: italic;
+    overflow-wrap: anywhere;
   }
-  .label ha-icon { --mdc-icon-size: 16px; }
-  .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .actions { display: inline-flex; align-items: center; gap: 2px; }
+  blockquote.short { font-size: 17px; }
+  blockquote.medium { font-size: 15px; }
+  blockquote.long { font-size: 14px; }
+  .by {
+    padding: 3px 0 0 13px; font-size: 12px; color: var(--secondary-text-color);
+    overflow-wrap: anywhere;
+  }
+  .by .name { font-weight: 500; color: var(--primary-text-color); }
+  .ai { margin-top: 8px; }
+  .ai-icon { --mdc-icon-size: 18px; color: var(--accent-color, #ff9800); flex: 0 0 auto; margin-top: 1px; }
+  .ai-text {
+    flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.35; font-weight: 500;
+    color: var(--primary-text-color); overflow-wrap: anywhere;
+  }
+  .actions { display: inline-flex; flex: 0 0 auto; margin: -4px -6px 0 0; }
   .actions button {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    min-width: 36px; height: 36px; padding: 0 6px; border-radius: 18px; border: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; padding: 0; border: none; border-radius: 15px;
     cursor: pointer; background: transparent; color: var(--secondary-text-color);
-    font: inherit; font-size: 13px; white-space: nowrap;
   }
+  .actions button ha-icon { --mdc-icon-size: 18px; }
   .actions button:hover { background: var(--secondary-background-color); color: var(--primary-color); }
   .actions button:focus-visible { outline: 2px solid var(--primary-color); }
   .actions button[disabled] { opacity: 0.5; cursor: default; }
   .new-quote[disabled] ha-icon, .new-ai-quote[disabled] ha-icon { animation: spin 1s linear infinite; }
-  @container (max-width: 380px) {
-    .dislike.confirm span { display: none; }
-    .dislike.confirm, .dislike.confirm:hover { padding: 0 6px; }
-  }
   .dislike.confirm, .dislike.confirm:hover {
-    padding: 0 12px; background: var(--error-color, #db4437); color: var(--text-primary-color, #fff);
+    background: var(--error-color, #db4437); color: var(--text-primary-color, #fff);
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  blockquote {
-    margin: 12px 0 10px; padding: 0 0 0 14px;
-    border-left: 3px solid var(--primary-color);
-    color: var(--primary-text-color); line-height: 1.4; font-style: italic;
-    overflow-wrap: anywhere;
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+  .row {
+    display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none;
+    border-radius: 8px;
   }
-  blockquote.short { font-size: 22px; }
-  blockquote.medium { font-size: 18px; }
-  blockquote.long { font-size: 16px; }
-  .author { display: flex; flex-direction: column; gap: 2px; padding-left: 17px; }
-  .author .name { font-weight: 500; color: var(--primary-text-color); }
-  .reference { font-size: 13px; color: var(--secondary-text-color); }
-  .ai-text {
-    margin: 10px 0 0; font-size: 17px; line-height: 1.45; font-weight: 500;
-    color: var(--primary-text-color); overflow-wrap: anywhere;
-  }
-  .chip.ai { color: var(--accent-color, #ff9800); text-transform: none; letter-spacing: 0; }
-  .item { display: flex; gap: 14px; align-items: flex-start; }
-  .photo, .icon-box {
-    flex: 0 0 64px; width: 64px; height: 64px; border-radius: 12px; object-fit: cover;
+  a.row:hover .line { color: var(--primary-color); }
+  a.row:focus-visible { outline: 2px solid var(--primary-color); }
+  .thumb {
+    flex: 0 0 36px; width: 36px; height: 36px; border-radius: 8px; object-fit: cover;
     background: var(--secondary-background-color);
   }
-  .birthday .photo { border-radius: 50%; }
-  .icon-box { display: flex; align-items: center; justify-content: center; color: var(--primary-color); }
-  .icon-box ha-icon { --mdc-icon-size: 32px; }
-  .body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .title { font-size: 17px; font-weight: 500; color: var(--primary-text-color); }
-  .text { color: var(--primary-text-color); line-height: 1.4; overflow-wrap: anywhere; }
-  .meta { font-size: 13px; color: var(--secondary-text-color); }
-  .chip {
-    display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 10px;
-    font-size: 11px; letter-spacing: 0.03em;
-    background: var(--secondary-background-color); color: var(--primary-text-color);
+  .thumb.round { border-radius: 50%; }
+  .thumb.icon { display: flex; align-items: center; justify-content: center; color: var(--primary-color); }
+  .thumb.icon ha-icon { --mdc-icon-size: 20px; }
+  .body { display: flex; flex-direction: column; min-width: 0; }
+  .line {
+    font-size: 13px; line-height: 1.3; color: var(--primary-text-color);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .chip ha-icon { --mdc-icon-size: 13px; }
-  .chip.science { color: var(--info-color, #039be5); }
-  .chip.culture { color: var(--success-color, #43a047); }
-  .chip.history { color: var(--warning-color, #ff9800); }
-  .link {
-    display: inline-flex; align-items: center; gap: 3px; margin-top: 2px; width: fit-content;
-    font-size: 13px; color: var(--primary-color); text-decoration: none;
+  .line b { font-weight: 500; }
+  .meta {
+    font-size: 11px; line-height: 1.4; color: var(--secondary-text-color);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .link:hover { text-decoration: underline; }
-  .link ha-icon { --mdc-icon-size: 14px; }
+  .tag { font-weight: 500; }
+  .tag.science { color: var(--info-color, #039be5); }
+  .tag.culture { color: var(--success-color, #43a047); }
+  .tag.history { color: var(--warning-color, #ff9800); }
   .empty { margin: 0; color: var(--secondary-text-color); }
 `;
 

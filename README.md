@@ -118,11 +118,13 @@ with "…" in the state, the full text is always in the `quote` attribute.
 ## Dashboard card
 
 The integration ships its own card, **Quote of the Day**
-(`custom:daily-quote-card`), with a visual editor. It shows the quote with
-author and source, the AI quote (when set up) with its own refresh button,
-the famous birthday with photo and the fact of the day, plus buttons for a
-new quote and for "not a good quote" (tap twice to confirm). It follows your
-theme (light/dark) and your language (English or Dutch).
+(`custom:daily-quote-card`), with a visual editor. It is compact: the quote
+with author and source on one line, the AI quote (when set up) on one line
+with a small robot icon, and the famous birthday and the fact of the day as
+short rows with a small photo (tap one to read more on Wikipedia). Small
+buttons for a new quote, "not a good quote" (tap twice to confirm) and a new
+AI quote. It follows your theme (light/dark) and your language (English or
+Dutch).
 
 **Edit dashboard → Add card**, search for **Quote of the Day** and set it up
 in the visual editor. Or in YAML:
