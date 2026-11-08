@@ -6,7 +6,7 @@
  * by the integration itself; no resource needs to be added by hand.
  */
 
-const CARD_VERSION = "1.7.0";
+const CARD_VERSION = "1.7.1";
 
 const DEFAULTS = {
   quote_entity: "sensor.quote_of_the_day_quote",
