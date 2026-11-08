@@ -473,7 +473,7 @@ const STYLES = `
   @keyframes spin { to { transform: rotate(360deg); } }
   .rows { display: flex; flex-direction: column; gap: 8px; }
   .row {
-    display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none;
+    display: flex; align-items: flex-start; gap: 10px; color: inherit; text-decoration: none;
     border-radius: 8px;
   }
   a.row:hover .line { color: var(--primary-color); }
@@ -486,10 +486,7 @@ const STYLES = `
   .thumb.icon { display: flex; align-items: center; justify-content: center; color: var(--primary-color); }
   .thumb.icon ha-icon { --mdc-icon-size: 20px; }
   .body { display: flex; flex-direction: column; min-width: 0; }
-  .line {
-    font-size: 13px; line-height: 1.3; color: var(--primary-text-color);
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-  }
+  .line { font-size: 13px; line-height: 1.3; color: var(--primary-text-color); overflow-wrap: anywhere; }
   .line b { font-weight: 500; }
   .meta {
     font-size: 11px; line-height: 1.4; color: var(--secondary-text-color);
