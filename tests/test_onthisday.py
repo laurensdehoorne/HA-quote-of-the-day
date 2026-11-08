@@ -78,7 +78,7 @@ PAGEVIEWS = {
     }
 }
 SELECTED = {
-    "selected": [
+    "events": [
         {
             "text": "A treaty is signed between two kingdoms.",
             "year": 1648,
@@ -115,20 +115,55 @@ def test_pick_birthday_without_pageviews() -> None:
     assert birthday.image is not None
 
 
+def _fact(text: str, year: int) -> dict:
+    return {"text": text, "year": year, "pages": [_page(text[:20])]}
+
+
+EVENTS = {
+    "events": [
+        _fact("The first powered aircraft flight takes place.", 1903),
+        _fact("A great battle is fought between two empires.", 2001),
+        _fact("An earthquake strikes the capital, killing hundreds.", 2010),
+        _fact("The new parliament is elected after a long campaign.", 2015),
+        _fact("The James Webb Space Telescope sends its first images.", 2022),
+        _fact("The band releases its debut album to wide acclaim.", 2019),
+        _fact("The country adopts a new currency.", 2005),
+    ]
+}
+
+
 def test_parse_events_categories() -> None:
     facts = parse_events(SELECTED)
     assert [(f.year, f.category) for f in facts] == [(1648, "history"), (1957, "science")]
     assert facts[1].title == "Sputnik 1"
+    assert parse_events({"selected": SELECTED["events"]}) == facts
+    categories = {f.text[:12]: f.category for f in parse_events(EVENTS)}
+    assert categories["The band rel"] == "culture"
+    assert categories["The James We"] == "science"
+    assert categories["The country "] == "history"
 
 
-def test_pick_fact_is_deterministic_and_prefers_science() -> None:
-    facts = parse_events(SELECTED)
-    days = [date(2026, 1, 1) + timedelta(days=i) for i in range(400)]
+def test_pick_fact_recent_and_upbeat() -> None:
+    facts = parse_events(EVENTS)
+    days = [date(2026, 1, 1) + timedelta(days=i) for i in range(600)]
     picks = [pick_fact(facts, d) for d in days]
-    assert pick_fact(facts, days[0]) == picks[0]
-    science = sum(p.category == "science" for p in picks)
-    assert 250 < science < 350  # weight 3:1
+    assert pick_fact(facts, days[0]) == picks[0]  # deterministic per day
+    counts = {f.text[:12]: sum(p == f for p in picks) for f in facts}
+    # Never war or disasters, never the event of more than 50 years ago.
+    assert counts["A great batt"] == counts["An earthquak"] == 0
+    assert counts["The first po"] == 0
+    # Science and culture (4) > other (1) > politics (0.5).
+    assert counts["The James We"] > 3 * counts["The country "]
+    assert counts["The band rel"] > 3 * counts["The country "]
+    assert counts["The country "] > counts["The new parl"] > 0
     assert pick_fact([], days[0]) is None
+
+
+def test_pick_fact_falls_back_to_older_and_gloomy() -> None:
+    old = parse_events({"events": [_fact("The first powered aircraft flight.", 1903)]})
+    assert pick_fact(old, date(2026, 1, 1)) == old[0]
+    gloomy = parse_events({"events": [_fact("A great battle is fought.", 2001)]})
+    assert pick_fact(gloomy, date(2026, 1, 1)) == gloomy[0]
 
 
 @pytest.mark.parametrize("data", [[], {}, {"births": "x"}])
@@ -137,7 +172,7 @@ def test_parse_births_errors(data) -> None:
         parse_births(data)
 
 
-@pytest.mark.parametrize("data", [[], {}, {"selected": None}])
+@pytest.mark.parametrize("data", [[], {}, {"events": None}])
 def test_parse_events_errors(data) -> None:
     with pytest.raises(OnThisDayError):
         parse_events(data)
@@ -148,7 +183,7 @@ def _mock_wiki(aioclient_mock: AiohttpClientMocker, lang: str = "en") -> None:
     for month_day in ("11/04", "11/05", "11/06", "11/07", "11/08", "11/09", "11/10"):
         aioclient_mock.get(f"{base}/api/rest_v1/feed/onthisday/births/{month_day}", json=BIRTHS)
         aioclient_mock.get(
-            f"{base}/api/rest_v1/feed/onthisday/selected/{month_day}", json=SELECTED
+            f"{base}/api/rest_v1/feed/onthisday/events/{month_day}", json=SELECTED
         )
     aioclient_mock.get(f"{base}/w/api.php", json=PAGEVIEWS)
 
@@ -214,7 +249,7 @@ async def test_prefetch_and_offline(
         freezer.tick(timedelta(minutes=31))
         async_fire_time_changed(hass)
         await hass.async_block_till_done()
-    assert len(_feed_calls(aioclient_mock)) == 14  # 7 days x (births + selected)
+    assert len(_feed_calls(aioclient_mock)) == 14  # 7 days x (births + events)
 
     # Internet gone: the next days still work from the cache, also after restart.
     aioclient_mock.clear_requests()
@@ -235,7 +270,7 @@ async def test_wikipedia_down_does_not_break_quote(
         "https://en.wikipedia.org/api/rest_v1/feed/onthisday/births/11/04", status=503
     )
     aioclient_mock.get(
-        "https://en.wikipedia.org/api/rest_v1/feed/onthisday/selected/11/04", status=503
+        "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/11/04", status=503
     )
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -260,7 +295,7 @@ async def test_dutch_falls_back_to_english(
     freezer: FrozenDateTimeFactory,
 ) -> None:
     freezer.move_to("2026-11-04 12:00:00+00:00")
-    for kind in ("births", "selected"):
+    for kind in ("births", "events"):
         for md in ("11/04", "11/05"):
             aioclient_mock.get(
                 f"https://nl.wikipedia.org/api/rest_v1/feed/onthisday/{kind}/{md}",

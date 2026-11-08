@@ -188,6 +188,7 @@
             "name": "Categorie",
             "state": {
               "science": "Wetenschap",
+              "culture": "Cultuur",
               "history": "Geschiedenis"
             }
           },
