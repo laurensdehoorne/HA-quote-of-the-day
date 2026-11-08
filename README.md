@@ -29,6 +29,8 @@ Optionally, an AI writes you a fresh motivational quote of its own as well.
   with a new motivational quote written by AI every day, in your language.
   - The AI writes its own sentence and is told not to quote or name anyone,
     so it is never passed off as a quote by a real person.
+  - Choose its language: *Automatic* (follows the language setting, or
+    Home Assistant's language with "All languages"), Dutch or English.
   - Add your own wishes, e.g. "about running", "for a team of nurses" or
     "with a touch of humour".
   - Each day has a different angle (starting, discipline, failing and trying

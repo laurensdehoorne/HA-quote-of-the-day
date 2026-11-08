@@ -98,7 +98,7 @@ async def test_config_flow(
     }
     result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"] == user_input
+    assert result["data"] == {**user_input, "ai_language": "auto"}
     await hass.async_block_till_done()
     assert hass.states.get(QUOTE_SENSOR) is not None
 

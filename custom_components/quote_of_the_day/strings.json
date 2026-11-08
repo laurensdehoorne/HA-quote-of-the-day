@@ -11,6 +11,7 @@
           "cache_days": "Cache duration (days)",
           "on_this_day": "Birthday and fact of the day",
           "ai_task_entity": "AI quote (AI Task entity)",
+          "ai_language": "AI quote language",
           "ai_instructions": "Wishes for the AI quote"
         },
         "data_description": {
@@ -20,6 +21,7 @@
           "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources.",
           "on_this_day": "Adds a sensor with a famous person born on this day and one with a historical or scientific event, from Wikipedia.",
           "ai_task_entity": "Optional. Pick an AI Task entity (e.g. OpenAI, Google Gemini, Anthropic or Ollama) to get a sensor with a new motivational quote written by AI every day. Requires Home Assistant 2025.8 or later. Leave empty to turn it off.",
+          "ai_language": "Language of the AI quote. 'Automatic' follows the language above, or Home Assistant's language with 'All languages'.",
           "ai_instructions": "Optional. Extra wishes for the AI, e.g. 'about running', 'for a team of nurses' or 'with a touch of humour'."
         }
       }
@@ -39,6 +41,7 @@
           "cache_days": "Cache duration (days)",
           "on_this_day": "Birthday and fact of the day",
           "ai_task_entity": "AI quote (AI Task entity)",
+          "ai_language": "AI quote language",
           "ai_instructions": "Wishes for the AI quote"
         },
         "data_description": {
@@ -48,6 +51,7 @@
           "cache_days": "How long downloaded quotes are used before new ones are fetched. Only for online sources.",
           "on_this_day": "Adds a sensor with a famous person born on this day and one with a historical or scientific event, from Wikipedia.",
           "ai_task_entity": "Optional. Pick an AI Task entity (e.g. OpenAI, Google Gemini, Anthropic or Ollama) to get a sensor with a new motivational quote written by AI every day. Requires Home Assistant 2025.8 or later. Leave empty to turn it off.",
+          "ai_language": "Language of the AI quote. 'Automatic' follows the language above, or Home Assistant's language with 'All languages'.",
           "ai_instructions": "Optional. Extra wishes for the AI, e.g. 'about running', 'for a team of nurses' or 'with a touch of humour'."
         }
       }
@@ -73,6 +77,13 @@
       "options": {
         "motivational": "Motivational",
         "all": "All quotes"
+      }
+    },
+    "ai_language": {
+      "options": {
+        "auto": "Automatic",
+        "nl": "Dutch",
+        "en": "English"
       }
     }
   },
