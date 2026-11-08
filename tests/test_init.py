@@ -25,7 +25,10 @@ from custom_components.quote_of_the_day.const import (
     FAVQS_QOTD_URL,
     ZENQUOTES_BATCH_URL,
 )
-from custom_components.quote_of_the_day.quotes import quotes_for_language
+from custom_components.quote_of_the_day.quotes import (
+    is_motivational,
+    quotes_for_language,
+)
 
 QUOTE_SENSOR = "sensor.quote_of_the_day_quote"
 AUTHOR_SENSOR = "sensor.quote_of_the_day_author"
@@ -61,6 +64,7 @@ async def _setup(hass: HomeAssistant, **data) -> MockConfigEntry:
             "language": "all",
             "cache_days": 28,
             "on_this_day": False,
+            "theme": "all",
             **data,
         },
     )
@@ -86,6 +90,7 @@ async def test_config_flow(
     )
     assert result["type"] is FlowResultType.FORM
     user_input = {
+        "theme": "motivational",
         "sources": ["builtin", "zenquotes", "brainyquote", "favqs"],
         "language": "all",
         "cache_days": 14,
@@ -311,6 +316,7 @@ async def test_options_and_unload(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {
+            "theme": "all",
             "sources": ["builtin"],
             "language": "en",
             "cache_days": 28,
@@ -371,3 +377,62 @@ async def test_dislike_everything_still_shows_a_quote(
     await _setup(hass, sources=["zenquotes"])
     await _press(hass, DISLIKE_BUTTON)
     assert hass.states.get(QUOTE_SENSOR).state == "The one and only good quote."
+
+
+async def test_motivational_theme(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    freezer.move_to("2026-11-04 12:00:00+00:00")
+    aioclient_mock.get(
+        ZENQUOTES_BATCH_URL,
+        json=[
+            {"q": "Keep going, every small step counts.", "a": "Coach"},
+            {"q": "The cat sat quietly on the warm mat.", "a": "Poet"},
+        ],
+    )
+    entry = await _setup(
+        hass, sources=["builtin", "zenquotes"], language="all", theme="motivational"
+    )
+    pool = {q.text for q in quotes_for_language("all") if is_motivational(q)}
+    pool.add("Keep going, every small step counts.")
+
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.attributes["theme"] == "motivational"
+    assert state.attributes["motivational"] is True
+    shown = {state.state}
+    for _ in range(len(pool) - 1):
+        state = await _next_day(hass, freezer)
+        assert state.attributes["motivational"] is True
+        shown.add(state.state)
+    # Every motivational quote, including the online one; nothing else.
+    assert shown == pool
+
+    # Switching the theme picks a quote from the whole collection again.
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "theme": "all",
+            "sources": ["builtin", "zenquotes"],
+            "language": "all",
+            "cache_days": 28,
+            "on_this_day": False,
+        },
+    )
+    await hass.async_block_till_done()
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.attributes["theme"] == "all"
+
+
+async def test_motivational_theme_without_matches_still_shows_a_quote(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.get(
+        ZENQUOTES_BATCH_URL, json=[{"q": "The cat sat quietly on the warm mat.", "a": "Poet"}]
+    )
+    await _setup(hass, sources=["zenquotes"], theme="motivational")
+    state = hass.states.get(QUOTE_SENSOR)
+    assert state.state == "The cat sat quietly on the warm mat."
+    assert state.attributes["motivational"] is False

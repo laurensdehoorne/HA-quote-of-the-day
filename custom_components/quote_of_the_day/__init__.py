@@ -3,21 +3,18 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.start import async_at_started
 
+from .ai_coordinator import AiQuoteCoordinator, ai_task_entity
 from .const import (
-    CARD_FILENAME,
-    CARD_URL_BASE,
     CONF_ON_THIS_DAY,
     CONF_SOURCE,
     CONF_SOURCES,
     DEFAULT_ON_THIS_DAY,
-    DOMAIN,
     SOURCE_BUILTIN,
 )
 from .coordinator import QuoteCoordinator
@@ -27,38 +24,6 @@ from .onthisday_coordinator import OnThisDayCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BUTTON, Platform.SENSOR]
-
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Serve the dashboard card and load it in the frontend."""
-    await _async_register_card(hass)
-    return True
-
-
-async def _async_register_card(hass: HomeAssistant) -> None:
-    """Make custom:daily-quote-card available without adding a resource."""
-    if hass.http is None:  # e.g. tests without the http component
-        return
-    from homeassistant.components.http import StaticPathConfig  # noqa: PLC0415
-
-    manifest_version = await hass.async_add_executor_job(_card_version)
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(CARD_URL_BASE, str(Path(__file__).parent / "frontend"), True)]
-    )
-    if "frontend" in hass.config.components:
-        from homeassistant.components.frontend import add_extra_js_url  # noqa: PLC0415
-
-        # Version in the URL so browsers pick up a new card after an update.
-        add_extra_js_url(hass, f"{CARD_URL_BASE}/{CARD_FILENAME}?v={manifest_version}")
-
-
-def _card_version() -> str:
-    import json  # noqa: PLC0415
-
-    manifest = Path(__file__).parent / "manifest.json"
-    return str(json.loads(manifest.read_text(encoding="utf-8")).get("version", "0"))
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> bool:
@@ -78,11 +43,40 @@ async def async_setup_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> boo
         # Not "first_refresh": the quote must work even when Wikipedia doesn't.
         await on_this_day.async_refresh()
 
-    entry.runtime_data = QuoteRuntimeData(coordinator, on_this_day)
+    ai_quote: AiQuoteCoordinator | None = None
+    if ai_task_entity(entry):
+        ai_quote = AiQuoteCoordinator(hass, entry)
+        await ai_quote.async_setup()
+        entry.async_on_unload(ai_quote.async_shutdown_listeners)
+
+        # In the background, once Home Assistant (and the AI Task entity) has
+        # started: the AI can take a while and must not hold up the quote.
+        async def _async_first_ai_quote(_hass: HomeAssistant) -> None:
+            await ai_quote.async_refresh()
+
+        entry.async_on_unload(async_at_started(hass, _async_first_ai_quote))
+
+    entry.runtime_data = QuoteRuntimeData(coordinator, on_this_day, ai_quote)
+    _async_remove_unused_entities(
+        hass,
+        entry,
+        ([] if on_this_day else ["birthday", "on_this_day"])
+        + ([] if ai_quote else ["ai_quote", "new_ai_quote"]),
+    )
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+def _async_remove_unused_entities(
+    hass: HomeAssistant, entry: QuoteConfigEntry, keys: list[str]
+) -> None:
+    """Remove entities of features that were switched off in the options."""
+    registry = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if entity.unique_id in {f"{entry.entry_id}_{key}" for key in keys}:
+            registry.async_remove(entity.entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> bool:
