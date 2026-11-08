@@ -1,12 +1,12 @@
 /**
  * Daily quote card (custom:daily-quote-card) for Home Assistant.
  *
- * Shows the quote of the day, a famous person born today and a historical or
- * scientific fact, from the Quote of the Day integration. Served and loaded
+ * Shows the quote of the day, a motivational quote written by AI (when set
+ * up), a famous person born today and a historical or scientific fact, from the Quote of the Day integration. Served and loaded
  * by the integration itself; no resource needs to be added by hand.
  */
 
-const CARD_VERSION = "1.5.0";
+const CARD_VERSION = "1.6.0";
 
 const DEFAULTS = {
   quote_entity: "sensor.quote_of_the_day_quote",
@@ -14,7 +14,10 @@ const DEFAULTS = {
   fact_entity: "sensor.quote_of_the_day_on_this_day",
   button_entity: "button.quote_of_the_day_new_quote",
   dislike_entity: "button.quote_of_the_day_dislike_quote",
+  ai_quote_entity: "sensor.quote_of_the_day_ai_quote",
+  ai_button_entity: "button.quote_of_the_day_new_ai_quote",
   show_quote: true,
+  show_ai_quote: true,
   show_reference: true,
   show_birthday: true,
   show_fact: true,
@@ -26,6 +29,9 @@ const DEFAULTS = {
 const TEXTS = {
   en: {
     title: "Quote of the day",
+    aiQuote: "Today's motivation",
+    aiBadge: "Written by AI",
+    newAiQuote: "New AI quote",
     birthday: "Born today",
     fact: "On this day",
     science: "Science",
@@ -41,6 +47,9 @@ const TEXTS = {
   },
   nl: {
     title: "Citaat van de dag",
+    aiQuote: "Motivatie van vandaag",
+    aiBadge: "Geschreven door AI",
+    newAiQuote: "Nieuw AI-citaat",
     birthday: "Vandaag jarig",
     fact: "Op deze dag",
     science: "Wetenschap",
@@ -97,6 +106,7 @@ class QuoteOfTheDayCard extends HTMLElement {
           schema: [
             { name: "show_quote", selector: { boolean: {} } },
             { name: "show_reference", selector: { boolean: {} } },
+            { name: "show_ai_quote", selector: { boolean: {} } },
             { name: "show_birthday", selector: { boolean: {} } },
             { name: "show_fact", selector: { boolean: {} } },
             { name: "show_images", selector: { boolean: {} } },
@@ -114,6 +124,8 @@ class QuoteOfTheDayCard extends HTMLElement {
             { name: "fact_entity", selector: { entity: { domain: "sensor" } } },
             { name: "button_entity", selector: { entity: { domain: "button" } } },
             { name: "dislike_entity", selector: { entity: { domain: "button" } } },
+            { name: "ai_quote_entity", selector: { entity: { domain: "sensor" } } },
+            { name: "ai_button_entity", selector: { entity: { domain: "button" } } },
           ],
         },
       ],
@@ -121,6 +133,9 @@ class QuoteOfTheDayCard extends HTMLElement {
         ({
           show_quote: "Quote",
           show_reference: "Source of the quote",
+          show_ai_quote: "AI quote",
+          ai_quote_entity: "AI quote sensor",
+          ai_button_entity: "New AI quote button",
           show_birthday: "Birthday",
           show_fact: "Fact of the day",
           show_images: "Pictures",
@@ -163,6 +178,7 @@ class QuoteOfTheDayCard extends HTMLElement {
   getCardSize() {
     let size = 1;
     if (this._config.show_quote) size += 3;
+    if (this._config.show_ai_quote && this._state(this._config.ai_quote_entity)) size += 2;
     if (this._config.show_birthday) size += 2;
     if (this._config.show_fact) size += 2;
     return size;
@@ -174,7 +190,15 @@ class QuoteOfTheDayCard extends HTMLElement {
 
   _watched() {
     const c = this._config;
-    return [c.quote_entity, c.birthday_entity, c.fact_entity, c.button_entity, c.dislike_entity];
+    return [
+      c.quote_entity,
+      c.ai_quote_entity,
+      c.birthday_entity,
+      c.fact_entity,
+      c.button_entity,
+      c.dislike_entity,
+      c.ai_button_entity,
+    ];
   }
 
   _t(key, vars = {}) {
@@ -250,6 +274,30 @@ class QuoteOfTheDayCard extends HTMLElement {
       </section>`;
   }
 
+  _renderAiQuote() {
+    // Only when the AI quote is set up in the integration's options.
+    const c = this._config;
+    const state = this._state(c.ai_quote_entity);
+    if (!state) return "";
+    const a = state.attributes;
+    const text = a.quote || state.state;
+    const button = this._hass.states[c.ai_button_entity]
+      ? `<button class="new-ai-quote" title="${escapeHtml(this._t("newAiQuote"))}" aria-label="${escapeHtml(
+          this._t("newAiQuote"),
+        )}" ${this._busy ? "disabled" : ""}><ha-icon icon="mdi:refresh"></ha-icon></button>`
+      : "";
+    return `
+      <section class="ai-quote">
+        <div class="header">
+          <span class="label"><ha-icon icon="mdi:robot-happy-outline"></ha-icon>${escapeHtml(this._t("aiQuote"))}
+            <span class="chip ai">${escapeHtml(this._t("aiBadge"))}</span>
+          </span>
+          <span class="actions">${button}</span>
+        </div>
+        <p class="ai-text" lang="${escapeHtml(a.language || "")}">${escapeHtml(text)}</p>
+      </section>`;
+  }
+
   _renderBirthday() {
     const state = this._state(this._config.birthday_entity);
     if (!state) return "";
@@ -302,6 +350,7 @@ class QuoteOfTheDayCard extends HTMLElement {
     const parts = [];
     if (this._hass) {
       if (c.show_quote) parts.push(this._renderQuote());
+      if (c.show_ai_quote) parts.push(this._renderAiQuote());
       if (c.show_birthday) parts.push(this._renderBirthday());
       if (c.show_fact) parts.push(this._renderFact());
     }
@@ -310,6 +359,8 @@ class QuoteOfTheDayCard extends HTMLElement {
       <ha-card>${parts.filter(Boolean).join('<div class="divider"></div>')}</ha-card>`;
     const button = this.shadowRoot.querySelector(".new-quote");
     if (button) button.addEventListener("click", () => this._press(this._config.button_entity));
+    const aiButton = this.shadowRoot.querySelector(".new-ai-quote");
+    if (aiButton) aiButton.addEventListener("click", () => this._press(this._config.ai_button_entity));
     const dislike = this.shadowRoot.querySelector(".dislike");
     if (dislike) dislike.addEventListener("click", () => this._dislike());
   }
@@ -367,7 +418,7 @@ const STYLES = `
   .actions button:hover { background: var(--secondary-background-color); color: var(--primary-color); }
   .actions button:focus-visible { outline: 2px solid var(--primary-color); }
   .actions button[disabled] { opacity: 0.5; cursor: default; }
-  .new-quote[disabled] ha-icon { animation: spin 1s linear infinite; }
+  .new-quote[disabled] ha-icon, .new-ai-quote[disabled] ha-icon { animation: spin 1s linear infinite; }
   @container (max-width: 380px) {
     .dislike.confirm span { display: none; }
     .dislike.confirm, .dislike.confirm:hover { padding: 0 6px; }
@@ -388,6 +439,11 @@ const STYLES = `
   .author { display: flex; flex-direction: column; gap: 2px; padding-left: 17px; }
   .author .name { font-weight: 500; color: var(--primary-text-color); }
   .reference { font-size: 13px; color: var(--secondary-text-color); }
+  .ai-text {
+    margin: 10px 0 0; font-size: 17px; line-height: 1.45; font-weight: 500;
+    color: var(--primary-text-color); overflow-wrap: anywhere;
+  }
+  .chip.ai { color: var(--accent-color, #ff9800); text-transform: none; letter-spacing: 0; }
   .item { display: flex; gap: 14px; align-items: flex-start; }
   .photo, .icon-box {
     flex: 0 0 64px; width: 64px; height: 64px; border-radius: 12px; object-fit: cover;
@@ -423,7 +479,7 @@ if (!customElements.get("daily-quote-card")) {
   window.customCards.push({
     type: "daily-quote-card",
     name: "Quote of the Day",
-    description: "Quote of the day, a famous birthday and a fact of the day.",
+    description: "Quote of the day, an AI-written motivation, a famous birthday and a fact of the day.",
     preview: true,
     documentationURL: "https://github.com/laurensdehoorne/HA-quote-of-the-day",
   });

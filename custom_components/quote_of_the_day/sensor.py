@@ -9,7 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
+from .ai_coordinator import AiQuoteCoordinator
 from .const import (
+    ATTR_AI_TASK_ENTITY,
     ATTR_AUTHOR,
     ATTR_CACHE_UPDATED,
     ATTR_CACHED_QUOTES,
@@ -17,15 +19,18 @@ from .const import (
     ATTR_ENTRIES,
     ATTR_FALLBACK,
     ATTR_LANGUAGE,
+    ATTR_MOTIVATIONAL,
     ATTR_QUOTE,
     ATTR_REFERENCE,
     ATTR_SOURCE,
+    ATTR_THEME,
 )
 from .coordinator import QuoteCoordinator
 from .data import QuoteConfigEntry
-from .entity import OnThisDayEntity, QuoteEntity
+from .entity import AiQuoteEntity, OnThisDayEntity, QuoteEntity
 from .onthisday import Birthday, Fact
 from .onthisday_coordinator import OnThisDayCoordinator
+from .quotes import is_motivational
 
 # Home Assistant limits a state to 255 characters; the full text is
 # always available in the ``quote`` attribute.
@@ -49,6 +54,8 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [QuoteSensor(data.quotes), AuthorSensor(data.quotes)]
     if data.on_this_day:
         entities += [BirthdaySensor(data.on_this_day), FactSensor(data.on_this_day)]
+    if data.ai_quote:
+        entities.append(AiQuoteSensor(data.ai_quote))
     async_add_entities(entities)
 
 
@@ -79,6 +86,8 @@ class QuoteSensor(QuoteEntity, SensorEntity):
             ATTR_SOURCE: state.quote.source,
             ATTR_LANGUAGE: state.quote.language,
             ATTR_FALLBACK: state.fallback,
+            ATTR_THEME: coordinator.theme,
+            ATTR_MOTIVATIONAL: is_motivational(state.quote),
             # Same shape as a Feedparser sensor, so feed-based Lovelace cards
             # (e.g. quote-of-the-day-card with `feed_attribute: entries`) work.
             ATTR_ENTRIES: [{"title": state.quote.author, "summary": state.quote.text}],
@@ -104,6 +113,39 @@ class AuthorSensor(QuoteEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the author."""
         return truncate(self.coordinator.data.quote.author)
+
+
+class AiQuoteSensor(AiQuoteEntity, SensorEntity):
+    """A motivational quote written by AI for today."""
+
+    _attr_icon = "mdi:robot-happy-outline"
+
+    def __init__(self, coordinator: AiQuoteCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, "ai_quote")
+
+    @property
+    def available(self) -> bool:
+        """Available once the AI wrote a quote."""
+        return super().available and self.coordinator.data is not None
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the (possibly truncated) quote."""
+        data = self.coordinator.data
+        return truncate(data.text) if data else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return the full quote and its details."""
+        if (data := self.coordinator.data) is None:
+            return None
+        return {
+            ATTR_QUOTE: data.text,
+            ATTR_DATE: data.day.isoformat(),
+            ATTR_LANGUAGE: data.language,
+            ATTR_AI_TASK_ENTITY: data.entity_id,
+        }
 
 
 def _years_ago(year: int) -> int:

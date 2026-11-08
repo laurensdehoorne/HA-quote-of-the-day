@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
+from .ai_coordinator import AiQuoteCoordinator
 from .const import ATTRIBUTIONS, DOMAIN, WIKIPEDIA_ATTRIBUTION
 from .coordinator import QuoteCoordinator
 from .onthisday_coordinator import OnThisDayCoordinator
@@ -43,6 +44,10 @@ class QuoteEntity(BaseEntity[QuoteCoordinator]):
     def attribution(self) -> str | None:
         """Credit the online source of the current quote, if any."""
         return ATTRIBUTIONS.get(self.coordinator.data.quote.source)
+
+
+class AiQuoteEntity(BaseEntity[AiQuoteCoordinator]):
+    """Base for the AI quote entities."""
 
 
 class OnThisDayEntity(BaseEntity[OnThisDayCoordinator]):

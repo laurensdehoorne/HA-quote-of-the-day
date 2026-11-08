@@ -5,16 +5,22 @@
         "title": "Quote of the Day",
         "description": "Kies waar het citaat van de dag vandaan komt.",
         "data": {
+          "theme": "Thema",
           "sources": "Bronnen",
           "language": "Taal",
           "cache_days": "Cacheduur (dagen)",
-          "on_this_day": "Verjaardag en weetje van de dag"
+          "on_this_day": "Verjaardag en weetje van de dag",
+          "ai_task_entity": "AI-citaat (AI Task-entiteit)",
+          "ai_instructions": "Wensen voor het AI-citaat"
         },
         "data_description": {
+          "theme": "'Motiverend' toont alleen citaten over doorzetten, moed, inzet en groei. Ingebouwde citaten zijn met de hand gelabeld; online citaten worden herkend aan hun woorden.",
           "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
           "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
-          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia.",
+          "ai_task_entity": "Optioneel. Kies een AI Task-entiteit (bv. OpenAI, Google Gemini, Anthropic of Ollama) voor een sensor met elke dag een nieuw motiverend citaat, geschreven door AI. Vereist Home Assistant 2025.8 of nieuwer. Laat leeg om het uit te zetten.",
+          "ai_instructions": "Optioneel. Extra wensen voor de AI, bv. 'over hardlopen', 'voor een team verpleegkundigen' of 'met een vleugje humor'."
         }
       }
     },
@@ -27,16 +33,22 @@
       "init": {
         "title": "Opties voor Quote of the Day",
         "data": {
+          "theme": "Thema",
           "sources": "Bronnen",
           "language": "Taal",
           "cache_days": "Cacheduur (dagen)",
-          "on_this_day": "Verjaardag en weetje van de dag"
+          "on_this_day": "Verjaardag en weetje van de dag",
+          "ai_task_entity": "AI-citaat (AI Task-entiteit)",
+          "ai_instructions": "Wensen voor het AI-citaat"
         },
         "data_description": {
+          "theme": "'Motiverend' toont alleen citaten over doorzetten, moed, inzet en groei. Ingebouwde citaten zijn met de hand gelabeld; online citaten worden herkend aan hun woorden.",
           "sources": "Kies één of meer bronnen; de citaten worden samengevoegd. De ingebouwde verzameling is zorgvuldig samengesteld en werkt offline. ZenQuotes, BrainyQuote en FavQs zijn Engelstalige online bronnen: hun citaten worden opgehaald, op kwaliteit gefilterd en bewaard.",
           "language": "Welke citaten getoond worden. Online bronnen zijn Engelstalig, dus bij 'Nederlands' wordt alleen de ingebouwde verzameling gebruikt.",
           "cache_days": "Hoe lang opgehaalde citaten gebruikt worden voordat er nieuwe opgehaald worden. Alleen voor online bronnen.",
-          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia."
+          "on_this_day": "Voegt een sensor toe met een bekende persoon die vandaag jarig is en één met een historisch of wetenschappelijk weetje, via Wikipedia.",
+          "ai_task_entity": "Optioneel. Kies een AI Task-entiteit (bv. OpenAI, Google Gemini, Anthropic of Ollama) voor een sensor met elke dag een nieuw motiverend citaat, geschreven door AI. Vereist Home Assistant 2025.8 of nieuwer. Laat leeg om het uit te zetten.",
+          "ai_instructions": "Optioneel. Extra wensen voor de AI, bv. 'over hardlopen', 'voor een team verpleegkundigen' of 'met een vleugje humor'."
         }
       }
     }
@@ -55,6 +67,12 @@
         "all": "Alle talen",
         "en": "Engels",
         "nl": "Nederlands"
+      }
+    },
+    "theme": {
+      "options": {
+        "motivational": "Motiverend",
+        "all": "Alle citaten"
       }
     }
   },
@@ -95,11 +113,38 @@
           },
           "disliked_quotes": {
             "name": "Afgekeurde citaten"
+          },
+          "theme": {
+            "name": "Thema",
+            "state": {
+              "motivational": "Motiverend",
+              "all": "Alle citaten"
+            }
+          },
+          "motivational": {
+            "name": "Motiverend"
           }
         }
       },
       "author": {
         "name": "Auteur"
+      },
+      "ai_quote": {
+        "name": "AI-citaat",
+        "state_attributes": {
+          "quote": {
+            "name": "Citaat"
+          },
+          "date": {
+            "name": "Datum"
+          },
+          "language": {
+            "name": "Taal"
+          },
+          "ai_task_entity": {
+            "name": "AI Task-entiteit"
+          }
+        }
       },
       "birthday": {
         "name": "Verjaardag",
@@ -167,6 +212,9 @@
       },
       "restore_disliked": {
         "name": "Afgekeurde citaten terugzetten"
+      },
+      "new_ai_quote": {
+        "name": "Nieuw AI-citaat"
       }
     }
   }

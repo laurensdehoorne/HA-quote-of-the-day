@@ -1,7 +1,8 @@
 # Quote of the Day for Home Assistant
 
-A Home Assistant integration that gives you a new quote every day, ready for
-your dashboard, a morning notification or a TTS announcement.
+A Home Assistant integration that gives you a new motivational quote every
+day, ready for your dashboard, a morning notification or a TTS announcement.
+Optionally, an AI writes you a fresh motivational quote of its own as well.
 
 ## Features
 
@@ -18,6 +19,24 @@ your dashboard, a morning notification or a TTS announcement.
 
   No quote repeats until the whole pool has been shown. If several sources
   return the same quote, it is only used once.
+- **Motivational by default.** The *Motivational* theme only shows quotes
+  about perseverance, courage, effort and growth. The built-in quotes are
+  labelled by hand (about 80 English and 35 Dutch ones); online quotes are
+  recognized by their words. Choose *All quotes* for the whole collection.
+- **AI quote (optional).** Pick an
+  [AI Task](https://www.home-assistant.io/integrations/ai_task/) entity
+  (OpenAI, Google Gemini, Anthropic, Ollama, ...) and get a second sensor
+  with a new motivational quote written by AI every day, in your language.
+  - The AI writes its own sentence and is told not to quote or name anyone,
+    so it is never passed off as a quote by a real person.
+  - Add your own wishes, e.g. "about running", "for a team of nurses" or
+    "with a touch of humour".
+  - Each day has a different angle (starting, discipline, failing and trying
+    again, ...) and the AI is told not to repeat its earlier quotes.
+  - One AI request per day, plus one per press of the **New AI quote**
+    button. If the AI can't be reached, yesterday's quote stays and it is
+    retried after an hour.
+  - Needs Home Assistant 2025.8 or later with an AI Task entity set up.
 - **Good quotes only.**
   - The built-in collection (~180 quotes, with a focus on motivational and
     personal growth ones) is curated: every quote has the right author and a
@@ -71,19 +90,22 @@ of your Home Assistant configuration and restart Home Assistant.
 ## Setup
 
 **Settings → Devices & services → Add integration → Quote of the Day**, then
-pick the sources, language and cache duration. All can be changed later via
-**Configure**.
+pick the theme, sources, language and cache duration, and optionally an AI
+Task entity for the AI quote. All can be changed later via **Configure**;
+clear the AI Task entity to turn the AI quote off.
 
 ## Entities
 
 | Entity | Description |
 | --- | --- |
-| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `reference`, `date`, `source` (where this quote came from), `language`, `fallback`, `entries` (for feed cards), `disliked_quotes` and, for online sources, `cached_quotes` and `cache_updated`. |
+| `sensor.quote_of_the_day_quote` | The quote. Attributes: `quote` (full text), `author`, `reference`, `date`, `source` (where this quote came from), `language`, `fallback`, `theme`, `motivational`, `entries` (for feed cards), `disliked_quotes` and, for online sources, `cached_quotes` and `cache_updated`. |
 | `sensor.quote_of_the_day_author` | The author of the quote. |
+| `sensor.quote_of_the_day_ai_quote` | The quote written by AI (only with an AI Task entity). Attributes: `quote`, `date`, `language`, `ai_task_entity`. |
 | `sensor.quote_of_the_day_birthday` | Famous person born on this day. Picture: their photo. Attributes: `name`, `born`, `years_ago`, `description`, `summary`, `url`. |
 | `sensor.quote_of_the_day_on_this_day` | "year: event". Picture: from the article. Attributes: `text`, `year`, `years_ago`, `category` (`science`/`history`), `title`, `url`. |
 | `button.quote_of_the_day_new_quote` | Replaces today's quote with a random one. |
 | `button.quote_of_the_day_dislike_quote` | Marks today's quote as not good: it is replaced and never shown again. |
+| `button.quote_of_the_day_new_ai_quote` | Asks the AI for a new quote (only with an AI Task entity). |
 | `button.quote_of_the_day_restore_disliked_quotes` | Allows all disliked quotes again (configuration entity). |
 
 The state of a sensor is limited to 255 characters; longer quotes are cut off
@@ -95,7 +117,8 @@ The integration ships its own card, **`custom:daily-quote-card`**. It is
 loaded automatically: no HACS frontend plugin and no resource to add. After
 installing (or updating) the integration, refresh your browser once.
 
-It shows the quote with author and source, the famous birthday with photo,
+It shows the quote with author and source, the AI quote (when set up) with
+its own refresh button, the famous birthday with photo,
 and the fact of the day with a science/history label, plus buttons for a
 new quote and for "not a good quote" (tap twice to confirm). It follows your theme (light/dark) and your language (English or
 Dutch).
@@ -112,6 +135,7 @@ All options are optional and can also be set in the visual editor:
 | --- | --- | --- |
 | `show_quote` | `true` | Show the quote. |
 | `show_reference` | `true` | Show where the quote comes from. |
+| `show_ai_quote` | `true` | Show the AI quote, when it is set up. |
 | `show_birthday` | `true` | Show the famous birthday. |
 | `show_fact` | `true` | Show the fact of the day. |
 | `show_images` | `true` | Show the pictures from Wikipedia. |
@@ -122,6 +146,8 @@ All options are optional and can also be set in the visual editor:
 | `fact_entity` | `sensor.quote_of_the_day_on_this_day` | Fact sensor. |
 | `button_entity` | `button.quote_of_the_day_new_quote` | New quote button. |
 | `dislike_entity` | `button.quote_of_the_day_dislike_quote` | Dislike button. |
+| `ai_quote_entity` | `sensor.quote_of_the_day_ai_quote` | AI quote sensor. |
+| `ai_button_entity` | `button.quote_of_the_day_new_ai_quote` | New AI quote button. |
 
 Example, only the quote:
 
@@ -189,6 +215,23 @@ automation:
           message: >
             {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
             — {{ state_attr('sensor.quote_of_the_day_quote', 'author') }}
+```
+
+### Motivation from AI, read out in the morning
+
+```yaml
+automation:
+  - alias: Motivation in the morning
+    triggers:
+      - trigger: time
+        at: "07:30:00"
+    actions:
+      - action: tts.speak
+        target:
+          entity_id: tts.home_assistant_cloud
+        data:
+          media_player_entity_id: media_player.kitchen
+          message: "{{ state_attr('sensor.quote_of_the_day_ai_quote', 'quote') }}"
 ```
 
 ### Get a new quote from an automation

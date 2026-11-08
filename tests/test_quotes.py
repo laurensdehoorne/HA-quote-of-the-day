@@ -14,6 +14,7 @@ from custom_components.quote_of_the_day.quotes import (
     BUILTIN_QUOTES,
     Quote,
     is_good_quote,
+    is_motivational,
     normalize,
     quotes_for_language,
 )
@@ -39,6 +40,37 @@ def test_language_filter() -> None:
     assert quotes_for_language("xx") == BUILTIN_QUOTES
     assert len(quotes_for_language("en")) >= 60
     assert len(quotes_for_language("nl")) >= 30
+
+
+def test_builtin_motivational_quotes() -> None:
+    # Enough for months without repeats, in both languages.
+    for language, minimum in (("en", 60), ("nl", 30)):
+        motivational = [q for q in quotes_for_language(language) if is_motivational(q)]
+        assert len(motivational) >= minimum, language
+    stored = Quote.from_dict(BUILTIN_QUOTES[1].as_dict())
+    assert stored.motivational is BUILTIN_QUOTES[1].motivational
+
+
+@pytest.mark.parametrize(
+    ("text", "motivational"),
+    [
+        ("Success is not final, failure is not fatal.", True),
+        ("Keep going: every small step counts.", True),
+        ("Courage is grace under pressure.", True),
+        ("Never give up on a dream just because of the time it will take.", True),
+        ("The cat sat quietly on the warm mat.", False),
+        ("I like my coffee strong and my mornings slow.", False),
+        ("Love is composed of a single soul inhabiting two bodies.", False),
+    ],
+)
+def test_is_motivational_online(text: str, motivational: bool) -> None:
+    assert is_motivational(Quote(text, "Someone", "en", source="zenquotes")) is motivational
+
+
+def test_is_motivational_builtin_uses_label() -> None:
+    # Built-in quotes are labelled by hand, words don't matter.
+    assert not is_motivational(Quote("Try, try again.", "Someone", "en"))
+    assert is_motivational(Quote("Na regen komt zonneschijn.", "X", "nl", motivational=True))
 
 
 def test_normalize() -> None:
