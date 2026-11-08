@@ -188,6 +188,7 @@
             "name": "Category",
             "state": {
               "science": "Science",
+              "culture": "Culture",
               "history": "History"
             }
           },

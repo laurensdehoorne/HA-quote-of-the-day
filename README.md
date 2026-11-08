@@ -60,9 +60,11 @@ Optionally, an AI writes you a fresh motivational quote of its own as well.
   - *Birthday*: of everyone born on this day, the person whose Wikipedia
     page was read most in the last 30 days, with photo, description and
     age/years ago.
-  - *On this day*: one of the events Wikipedia editors selected for this
-    date; scientific events (space, discoveries, inventions, medicine…)
-    are three times as likely to be picked as other historical ones.
+  - *On this day*: a recent, upbeat event from this date: preferably from
+    the last 50 years, and never about war, disasters, attacks or crime
+    (as long as there is something else). Science (space, discoveries,
+    inventions, medicine…) and culture (music, film, sport, openings) are
+    picked most often, politics least.
   - Uses the Wikipedia of your language (Dutch with "Dutch", Home
     Assistant's language with "All"), falling back to English. The coming
     week is fetched ahead and cached, so a few days offline go unnoticed.
@@ -102,7 +104,7 @@ clear the AI Task entity to turn the AI quote off.
 | `sensor.quote_of_the_day_author` | The author of the quote. |
 | `sensor.quote_of_the_day_ai_quote` | The quote written by AI (only with an AI Task entity). Attributes: `quote`, `date`, `language`, `ai_task_entity`. |
 | `sensor.quote_of_the_day_birthday` | Famous person born on this day. Picture: their photo. Attributes: `name`, `born`, `years_ago`, `description`, `summary`, `url`. |
-| `sensor.quote_of_the_day_on_this_day` | "year: event". Picture: from the article. Attributes: `text`, `year`, `years_ago`, `category` (`science`/`history`), `title`, `url`. |
+| `sensor.quote_of_the_day_on_this_day` | "year: event". Picture: from the article. Attributes: `text`, `year`, `years_ago`, `category` (`science`/`culture`/`history`), `title`, `url`. |
 | `button.quote_of_the_day_new_quote` | Replaces today's quote with a random one. |
 | `button.quote_of_the_day_dislike_quote` | Marks today's quote as not good: it is replaced and never shown again. |
 | `button.quote_of_the_day_new_ai_quote` | Asks the AI for a new quote (only with an AI Task entity). |
@@ -162,7 +164,7 @@ cards:
       {%- if has_value(f) %}
 
       ---
-      ### <ha-icon icon="mdi:{{ 'flask-outline' if state_attr(f, 'category') == 'science' else 'book-clock-outline' }}"></ha-icon> {{ 'Op deze dag' if nl else 'On this day' }}
+      ### <ha-icon icon="mdi:{{ {'science': 'flask-outline', 'culture': 'music-note-outline'}.get(state_attr(f, 'category'), 'calendar-star') }}"></ha-icon> {{ 'Op deze dag' if nl else 'On this day' }}
 
       **{{ state_attr(f, 'year') }}**: {{ state_attr(f, 'text') }}<br>
       <small>{{ state_attr(f, 'years_ago') }} {{ 'jaar geleden' if nl else 'years ago' }} · [Wikipedia]({{ state_attr(f, 'url') }})</small>

@@ -4,8 +4,9 @@ Data comes from Wikipedia's "On this day" feed:
 
 * births   -> every notable person born on that day; the most famous one is
               chosen by Wikipedia page views of the last 30 days.
-* selected -> events picked by Wikipedia editors for the main page; events
-              about science and discovery are preferred.
+* events   -> notable events on that day. Recent (last 50 years), upbeat
+              ones are preferred: no wars, disasters or attacks, and more
+              often about science, space, culture or sport.
 """
 
 from __future__ import annotations
@@ -50,6 +51,50 @@ _SCIENCE_WORDS = (
 )
 
 
+# Culture, sport and openings, matched at the start of a word.
+_CULTURE_RE = re.compile(
+    r"\b(?:"
+    r"album|song|single|band|music|concert|festival|film|movie|premiere|"
+    r"television series|tv series|video game|game console|novel|museum|opera|"
+    r"theat|artist|painting|sculpture|olympi|world cup|championship|tournament|"
+    r"world record|marathon|grand prix|eurovision|launch|opens|opened|inaugurat|"
+    r"founded|unveil|bridge|tunnel|"
+    r"muziek|zanger|televisieserie|schilderij|kampioen|toernooi|wereldrecord|"
+    r"opent|geopend|opgericht|brug"
+    r")",
+    re.IGNORECASE,
+)
+
+# Politics is fine, but less fun: it weighs less.
+_POLITICS_RE = re.compile(
+    r"\b(?:"
+    r"elect|election|president|prime minister|parliament|government|treaty|"
+    r"resolution|referendum|senate|congress|minister|party|"
+    r"verkiezing|verkozen|premier|regering|parlement|verdrag"
+    r")",
+    re.IGNORECASE,
+)
+
+# Events that are no fun to read over breakfast.
+_GLOOMY_RE = re.compile(
+    r"\b(?:"
+    r"war|wars|battle|kill|killed|killing|dies|died|death|dead|massacre|bomb|"
+    r"bombing|attack|attacks|assassinat|executed|execution|murder|shooting|shot|"
+    r"terror|genocide|invade|invasion|siege|riot|coup|hijack|hostage|crash|"
+    r"crashes|sinks|sank|earthquake|tsunami|hurricane|typhoon|cyclone|tornado|"
+    r"flood|famine|epidemic|explosion|explodes|disaster|fire|ambush|ransom|"
+    r"kidnap|troops|military|army|soldiers|surrender|rebel|"
+    r"oorlog|slag|gedood|doden|sterft|overleden|bloedbad|bom|aanslag|moord|"
+    r"executie|beschiet|invasie|beleg|staatsgreep|gijzel|neerstort|aardbeving|"
+    r"overstroming|ramp|ontploffing|brand|troepen|leger|soldaten"
+    r")",
+    re.IGNORECASE,
+)
+
+# Prefer events from at most this many years ago.
+RECENT_YEARS = 50
+
+
 class OnThisDayError(QuoteApiError):
     """Raised when on-this-day data could not be fetched."""
 
@@ -73,7 +118,7 @@ class Fact:
 
     text: str
     year: int
-    category: str  # "science" or "history"
+    category: str  # "science", "culture" or "history"
     title: str
     url: str
     image: str | None
@@ -142,15 +187,15 @@ async def async_fetch_day(
                 session,
                 WIKI_FEED_URL.format(lang=lang, kind="births", month=day.month, day=day.day),
             )
-            selected = await _get_json(
+            events = await _get_json(
                 session,
-                WIKI_FEED_URL.format(lang=lang, kind="selected", month=day.month, day=day.day),
+                WIKI_FEED_URL.format(lang=lang, kind="events", month=day.month, day=day.day),
             )
         except OnThisDayError as err:
             last_error = err
             continue
         candidates = parse_births(births)
-        fact = pick_fact(parse_events(selected), day)
+        fact = pick_fact(parse_events(events), day)
         if not candidates and fact is None:
             last_error = OnThisDayError(f"No data for {day:%m-%d} on {lang}.wikipedia")
             continue
@@ -287,8 +332,10 @@ def pick_birthday(
 
 
 def parse_events(data: Any) -> list[Fact]:
-    """Parse the selected-events feed."""
-    items = data.get("selected") if isinstance(data, dict) else None
+    """Parse the events feed ("selected" also works: same format)."""
+    items = None
+    if isinstance(data, dict):
+        items = data.get("events", data.get("selected"))
     if not isinstance(items, list):
         raise OnThisDayError(f"Unexpected events response: {data!r:.200}")
     facts: list[Fact] = []
@@ -309,14 +356,42 @@ def parse_events(data: Any) -> list[Fact]:
         haystack = " ".join(
             [text, *(str(p.get("description") or "") for p in pages)]
         ).lower()
-        category = "science" if any(w in haystack for w in _SCIENCE_WORDS) else "history"
+        if any(w in haystack for w in _SCIENCE_WORDS):
+            category = "science"
+        elif _CULTURE_RE.search(haystack):
+            category = "culture"
+        else:
+            category = "history"
         facts.append(Fact(text, year, category, title, url, image))
     return facts
 
 
+def _weight(fact: Fact) -> float:
+    if fact.category != "history":
+        return 4
+    return 0.5 if _POLITICS_RE.search(fact.text) else 1
+
+
+def is_gloomy(fact: Fact) -> bool:
+    """Return True for events about war, disasters, attacks and the like."""
+    return bool(_GLOOMY_RE.search(fact.text))
+
+
 def pick_fact(facts: list[Fact], day: date) -> Fact | None:
-    """Pick one event; science events weigh three times as much."""
+    """Pick one recent, upbeat event.
+
+    Events of the last 50 years without war, disasters or violence come
+    first (then the last century, then any time). Within those, science and
+    culture events weigh most and politics least.
+    """
     if not facts:
         return None
-    weights = [3 if f.category == "science" else 1 for f in facts]
-    return random.Random(day.isoformat()).choices(facts, weights=weights)[0]
+    upbeat = [f for f in facts if not is_gloomy(f)]
+    candidates = (
+        [f for f in upbeat if day.year - f.year <= RECENT_YEARS]
+        or [f for f in upbeat if day.year - f.year <= 2 * RECENT_YEARS]
+        or upbeat
+        or facts
+    )
+    weights = [_weight(f) for f in candidates]
+    return random.Random(day.isoformat()).choices(candidates, weights=weights)[0]

@@ -34,6 +34,8 @@ PREFETCH_DAYS = 7
 MAX_FETCHES_PER_UPDATE = 2
 # A calendar day's data is re-fetched after a year (page views change).
 MAX_AGE = timedelta(days=365)
+# Raised when the way the fact is picked changes, so cached days are redone.
+CACHE_VERSION = 2
 
 
 def _key(day: date) -> str:
@@ -94,7 +96,11 @@ class OnThisDayCoordinator(DataUpdateCoordinator[DayInfo | None]):
 
     def _cached(self, day: date, now: datetime) -> DayInfo | None:
         entry = self._days.get(_key(day))
-        if not entry or entry.get("requested_language") != self.wiki_language:
+        if (
+            not entry
+            or entry.get("requested_language") != self.wiki_language
+            or entry.get("version") != CACHE_VERSION
+        ):
             return None
         fetched = dt_util.parse_datetime(str(entry.get("fetched", "")))
         if fetched is None or now - fetched > MAX_AGE:
@@ -119,6 +125,7 @@ class OnThisDayCoordinator(DataUpdateCoordinator[DayInfo | None]):
         self._days[key] = {
             "fetched": now.isoformat(),
             "requested_language": self.wiki_language,
+            "version": CACHE_VERSION,
             "info": info.as_dict(),
         }
         return True
