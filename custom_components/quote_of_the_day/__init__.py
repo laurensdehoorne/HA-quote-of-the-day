@@ -3,23 +3,18 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv, entity_registry as er
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.start import async_at_started
-from homeassistant.helpers.typing import ConfigType
 
 from .ai_coordinator import AiQuoteCoordinator, ai_task_entity
 from .const import (
-    CARD_FILENAME,
-    CARD_URL_BASE,
     CONF_ON_THIS_DAY,
     CONF_SOURCE,
     CONF_SOURCES,
     DEFAULT_ON_THIS_DAY,
-    DOMAIN,
     SOURCE_BUILTIN,
 )
 from .coordinator import QuoteCoordinator
@@ -29,38 +24,6 @@ from .onthisday_coordinator import OnThisDayCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BUTTON, Platform.SENSOR]
-
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Serve the dashboard card and load it in the frontend."""
-    await _async_register_card(hass)
-    return True
-
-
-async def _async_register_card(hass: HomeAssistant) -> None:
-    """Make custom:daily-quote-card available without adding a resource."""
-    if hass.http is None:  # e.g. tests without the http component
-        return
-    from homeassistant.components.http import StaticPathConfig  # noqa: PLC0415
-
-    manifest_version = await hass.async_add_executor_job(_card_version)
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(CARD_URL_BASE, str(Path(__file__).parent / "frontend"), True)]
-    )
-    if "frontend" in hass.config.components:
-        from homeassistant.components.frontend import add_extra_js_url  # noqa: PLC0415
-
-        # Version in the URL so browsers pick up a new card after an update.
-        add_extra_js_url(hass, f"{CARD_URL_BASE}/{CARD_FILENAME}?v={manifest_version}")
-
-
-def _card_version() -> str:
-    import json  # noqa: PLC0415
-
-    manifest = Path(__file__).parent / "manifest.json"
-    return str(json.loads(manifest.read_text(encoding="utf-8")).get("version", "0"))
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: QuoteConfigEntry) -> bool:

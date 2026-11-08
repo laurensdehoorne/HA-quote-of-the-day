@@ -113,80 +113,115 @@ with "…" in the state, the full text is always in the `quote` attribute.
 
 ## Dashboard card
 
-The integration ships its own card, **`custom:daily-quote-card`**. It is
-loaded automatically: no HACS frontend plugin and no resource to add. After
-installing (or updating) the integration, refresh your browser once.
+The card below only uses cards that are built into Home Assistant (a
+Markdown card and buttons), so there is nothing to install and nothing for
+the browser to load: it works in every browser, on old tablets and in the
+Companion app.
 
-It shows the quote with author and source, the AI quote (when set up) with
-its own refresh button, the famous birthday with photo,
-and the fact of the day with a science/history label, plus buttons for a
-new quote and for "not a good quote" (tap twice to confirm). It follows your theme (light/dark) and your language (English or
-Dutch).
+It shows the quote with author and source, the AI quote (when set up), the
+famous birthday with photo and the fact of the day, with buttons for a new
+quote, "not a good quote" (asks for confirmation) and a new AI quote.
 
-Add it via **Edit dashboard → Add card → Quote of the Day**, or in YAML:
-
-```yaml
-type: custom:daily-quote-card
-```
-
-All options are optional and can also be set in the visual editor:
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `show_quote` | `true` | Show the quote. |
-| `show_reference` | `true` | Show where the quote comes from. |
-| `show_ai_quote` | `true` | Show the AI quote, when it is set up. |
-| `show_birthday` | `true` | Show the famous birthday. |
-| `show_fact` | `true` | Show the fact of the day. |
-| `show_images` | `true` | Show the pictures from Wikipedia. |
-| `show_new_quote_button` | `true` | Show the "new quote" button. |
-| `show_dislike_button` | `true` | Show the "not a good quote" button. |
-| `quote_entity` | `sensor.quote_of_the_day_quote` | Quote sensor. |
-| `birthday_entity` | `sensor.quote_of_the_day_birthday` | Birthday sensor. |
-| `fact_entity` | `sensor.quote_of_the_day_on_this_day` | Fact sensor. |
-| `button_entity` | `button.quote_of_the_day_new_quote` | New quote button. |
-| `dislike_entity` | `button.quote_of_the_day_dislike_quote` | Dislike button. |
-| `ai_quote_entity` | `sensor.quote_of_the_day_ai_quote` | AI quote sensor. |
-| `ai_button_entity` | `button.quote_of_the_day_new_ai_quote` | New AI quote button. |
-
-Example, only the quote:
+**Edit dashboard → Add card → Manual**, and paste:
 
 ```yaml
-type: custom:daily-quote-card
-show_birthday: false
-show_fact: false
+type: vertical-stack
+cards:
+  - type: markdown
+    content: |
+      {%- set nl = false %}{# true: Dutch labels #}
+      {%- set q = 'sensor.quote_of_the_day_quote' %}
+      {%- set ai = 'sensor.quote_of_the_day_ai_quote' %}
+      {%- set b = 'sensor.quote_of_the_day_birthday' %}
+      {%- set f = 'sensor.quote_of_the_day_on_this_day' %}
+      {%- if has_value(q) %}
+      ### <ha-icon icon="mdi:format-quote-open"></ha-icon> {{ 'Citaat van de dag' if nl else 'Quote of the day' }}
+
+      > *{{ state_attr(q, 'quote') }}*
+
+      **— {{ state_attr(q, 'author') }}**
+      {%- if state_attr(q, 'reference') %}<br><small>{{ state_attr(q, 'reference') }}</small>{% endif %}
+      {% endif %}
+      {%- if has_value(ai) %}
+
+      ---
+      ### <ha-icon icon="mdi:robot-happy-outline"></ha-icon> {{ 'Motivatie van vandaag' if nl else "Today's motivation" }}
+
+      **{{ state_attr(ai, 'quote') }}**
+      {% endif %}
+      {%- if has_value(b) %}
+
+      ---
+      ### <ha-icon icon="mdi:cake-variant"></ha-icon> {{ 'Vandaag jarig' if nl else 'Born today' }}
+      {% if state_attr(b, 'entity_picture') %}
+      <img src="{{ state_attr(b, 'entity_picture') }}" height="80">
+      {% endif %}
+      **{{ state_attr(b, 'name') }}**, {{ state_attr(b, 'description') }}<br>
+      <small>{{ 'geboren in' if nl else 'born' }} {{ state_attr(b, 'born') }} · {{ state_attr(b, 'years_ago') }} {{ 'jaar geleden' if nl else 'years ago' }} · [Wikipedia]({{ state_attr(b, 'url') }})</small>
+      {% endif %}
+      {%- if has_value(f) %}
+
+      ---
+      ### <ha-icon icon="mdi:{{ 'flask-outline' if state_attr(f, 'category') == 'science' else 'book-clock-outline' }}"></ha-icon> {{ 'Op deze dag' if nl else 'On this day' }}
+
+      **{{ state_attr(f, 'year') }}**: {{ state_attr(f, 'text') }}<br>
+      <small>{{ state_attr(f, 'years_ago') }} {{ 'jaar geleden' if nl else 'years ago' }} · [Wikipedia]({{ state_attr(f, 'url') }})</small>
+      {% endif %}
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: button
+        name: New quote
+        icon: mdi:refresh
+        show_state: false
+        icon_height: 28px
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.quote_of_the_day_new_quote
+      - type: button
+        name: Not a good quote
+        icon: mdi:thumb-down-outline
+        show_state: false
+        icon_height: 28px
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.quote_of_the_day_dislike_quote
+          confirmation:
+            text: Never show this quote again?
+      # Only with the AI quote: remove this button if you don't use it.
+      - type: button
+        name: New AI quote
+        icon: mdi:robot-happy-outline
+        show_state: false
+        icon_height: 28px
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.quote_of_the_day_new_ai_quote
 ```
+
+- **Dutch labels:** change `set nl = false` to `set nl = true` (and translate
+  the button names).
+- **Leave out a part:** sections whose sensor doesn't exist (AI quote,
+  birthday, fact) are skipped automatically. To hide one anyway, delete its
+  block from `{%- if has_value(...) %}` to the matching `{% endif %}`.
+- **Only the quote**, in its simplest form:
+
+  ```yaml
+  type: markdown
+  content: |
+    > *{{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}*
+
+    **— {{ state_attr('sensor.quote_of_the_day_quote', 'author') }}**
+  ```
 
 ## Examples
-
-### Dashboard card
-
-```yaml
-type: markdown
-content: >
-  > {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
-
-  — *{{ state_attr('sensor.quote_of_the_day_quote', 'author') }}*
-```
-
-### Quote, birthday and fact on one card
-
-```yaml
-type: markdown
-content: >
-  > {{ state_attr('sensor.quote_of_the_day_quote', 'quote') }}
-
-  — *{{ state_attr('sensor.quote_of_the_day_quote', 'author') }}*
-
-
-  🎂 **{{ states('sensor.quote_of_the_day_birthday') }}**
-  (born {{ state_attr('sensor.quote_of_the_day_birthday', 'born') }}),
-  {{ state_attr('sensor.quote_of_the_day_birthday', 'description') }}
-
-
-  📜 **{{ state_attr('sensor.quote_of_the_day_on_this_day', 'year') }}**:
-  {{ state_attr('sensor.quote_of_the_day_on_this_day', 'text') }}
-```
 
 ### quote-of-the-day-card
 

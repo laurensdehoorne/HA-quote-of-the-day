@@ -6,9 +6,6 @@ from typing import Final
 
 DOMAIN: Final = "quote_of_the_day"
 
-CARD_URL_BASE: Final = "/quote_of_the_day_static"
-CARD_FILENAME: Final = "daily-quote-card.js"
-
 CONF_SOURCE: Final = "source"  # config entry version 1 (single source)
 CONF_SOURCES: Final = "sources"
 CONF_LANGUAGE: Final = "language"
