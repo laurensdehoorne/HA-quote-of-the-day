@@ -26,9 +26,11 @@ from .const import (
     CONF_CACHE_DAYS,
     CONF_LANGUAGE,
     CONF_SOURCES,
+    CONF_THEME,
     DEFAULT_CACHE_DAYS,
     DEFAULT_LANGUAGE,
     DEFAULT_SOURCES,
+    DEFAULT_THEME,
     DOMAIN,
     LANGUAGE_ALL,
     LANGUAGE_EN,
@@ -37,9 +39,10 @@ from .const import (
     SOURCE_BUILTIN,
     STORAGE_KEY,
     STORAGE_VERSION,
+    THEME_MOTIVATIONAL,
 )
 from .data import QuoteConfigEntry
-from .quotes import Quote, is_good_quote, quotes_for_language
+from .quotes import Quote, is_good_quote, is_motivational, quotes_for_language
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -158,6 +161,11 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
         return self._option(CONF_LANGUAGE, DEFAULT_LANGUAGE)
 
     @property
+    def theme(self) -> str:
+        """Selected theme: only motivational quotes, or all of them."""
+        return self._option(CONF_THEME, DEFAULT_THEME)
+
+    @property
     def cache_duration(self) -> timedelta:
         """How long fetched quotes are used before a source is contacted again."""
         return timedelta(days=int(self._option(CONF_CACHE_DAYS, DEFAULT_CACHE_DAYS)))
@@ -171,7 +179,7 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
 
     @property
     def _settings(self) -> str:
-        return f"{','.join(sorted(self.sources))}|{self.language}"
+        return f"{','.join(sorted(self.sources))}|{self.language}|{self.theme}"
 
     # --- lifecycle --------------------------------------------------------
 
@@ -294,6 +302,9 @@ class QuoteCoordinator(DataUpdateCoordinator[QuoteState]):
             if quote.key not in seen:
                 seen.add(quote.key)
                 unique.append(quote)
+        if self.theme == THEME_MOTIVATIONAL:
+            # Without any motivational quote, any quote beats none.
+            unique = [q for q in unique if is_motivational(q)] or unique
         liked = [q for q in unique if q.key not in self.disliked]
         # If everything was disliked, showing something beats showing nothing.
         return liked or unique, False
